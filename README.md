@@ -21,19 +21,82 @@ Get the Res and Req handlers:
 ```javascript
 let A_Lambda_Handler = (event, context, callback) => {
 	{req, res} = new ReqRes(event, context, callback);
-    //... Code here
+    //... Examples (below) here
 
 ```
+
 Non-ES6
 ```javascript
-let A_Lambda_Handler = (event, context, callback) => {
-	let reqRes = new ReqRes(event, context, callback);
-	let req = reqRes.req;
-	let res = reqRes.res;
-    //... Code here
+	var reqRes = new ReqRes(event, context, callback);
+	var req = reqRes.req;
+	var res = reqRes.res;
+  //... Examples (below) here
 ```
 
 
+## Examples
+
+### get Request headers
+
+```
+console.log(req.headers)
+```
+
+### set Request headers
+
+```
+res.headers({"foo":"bar"})
+console.log(res.headers())
+```
+
+### Return json
+
+```
+res.json({
+  works:true;
+})
+```
+
+### Return JS Error
+
+```
+try{
+ var1 = anUndefinedVar;
+}catch(e){
+  res.error(e)
+}
+```
+
+
+### Let Proimises handle everything
+```
+//a async function to query something
+var query = (queryString)=>{
+  return new Promise((fulfill)=>{
+    setTimeout(()=>{
+      fulfill(queryString)
+    },1000)
+  })
+}
+//call function with url query params from requester
+res.handle(query(req.query))
+
+```
+
+### Handel Proimise Errors
+```
+//a async function to query something
+var query = (queryString)=>{
+  return new Promise((fulfill,reject)=>{
+    setTimeout(()=>{
+      var1 = anUndefinedVar;
+    },1000)
+  }).catch(reject)
+}
+//call function with url query params from requester
+res.handle(query(req.query))
+
+```
 
 # *Req Object*
 
@@ -80,7 +143,7 @@ Waits for proimsie to resolve before fullfilling the response (res.json) or disp
 > **Returns:** lambda callback parameters
 
 
-## res.json(int(StatusCode), Object(Body))
+## res.json(StatusCode:int, Body:Object)
 
 ### OR res.json(Body:Object)
 
@@ -108,7 +171,9 @@ If an object is past it will return your custom error object as jason body
 > 
 > **Returns:** lambda callback parameters
 
-## res.send(Body:String) *OR* res.send(StatusCode:int, Body:String)
+## res.json(StatusCode:int, Body:String)
+
+### OR res.json(Body:String)
 
 fulfill the lamba function with a string (such as html)
 
