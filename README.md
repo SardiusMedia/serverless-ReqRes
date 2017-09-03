@@ -13,14 +13,14 @@ npm install Lambda-ReqRes --save
 And include in your project:
 
 ```javascript
-const ReqRes = require('Lambda-ReqRes');
+var ReqRes = require('Lambda-ReqRes');
 ```
 
 Get the Res and Req handlers:
 
 ```javascript
 //lambdaEndpoint.com?userName="fooBar"
-let reqRes = new ReqRes((req,res)=>{
+var reqRes = new ReqRes((req,res)=>{
   res.json({
     hello: req.params.userName
   })
@@ -40,14 +40,14 @@ module.exports = {get:reqRes.run}
 include the plugins module
 
 ```javascript
-const ReqRes = require('Lambda-ReqRes');
+var ReqRes = require('Lambda-ReqRes');
 //include the plugins module
-const reqResPlugins = require('Lambda-ReqRes/plugins');
+var reqResPlugins = require('Lambda-ReqRes/plugins');
 ```
 
 create two plugins that vaildates user and sends back a 404 with a custom message
 ```javascript
-
+//varify user based off token
 reqResPlugins.add((res,req, lambdaRequest)=>{
   return new Promise((fullfill, reject)=>{
       getUser(req.headers.token).then((user)=>{
@@ -58,7 +58,7 @@ reqResPlugins.add((res,req, lambdaRequest)=>{
   req.timestamp = new Date.now()
 })
 
-//create a custom res for a specal usecase
+//create a custom response for a "specal usecase"
 reqResPlugins.add((res,req, lambdaRequest)=>{
   res.notFound = (message)=>{
     if(!message) message = "404 - Not Found."
@@ -76,7 +76,7 @@ let reqRes = new ReqRes((req,res)=>{
   res.send("hello! "+req.user.firstName + " it's now "+req.now )
 })
 //set req.now for only this function
-.before((errors ,req,res, lambdaRequest)=>{
+.before((req, res, lambdaRequest)=>{
   req.now = new Date.now()
 })
 //catch a plugin rejectcion
@@ -121,7 +121,9 @@ try{
 }
 ```
 # ReqRes Module
-Ex: ```javascript reqRes = new ReqRes((req,res)=>{...});```
+```javascript 
+var reqRes = new ReqRes((req,res)=>{...}); 
+```
 
 **reqRes.run(event, contex, callback)** handle raw lambda function call
 
