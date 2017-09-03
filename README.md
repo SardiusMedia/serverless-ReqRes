@@ -99,12 +99,12 @@ let reqRes = new ReqRes((req,res)=>{
 ### NOTE: All plugins and before()s are synchronously called
 ```javascript
 var handler = new ReqRes((req, res)=>{
-	req.stack.push("Finally")
-	//use our plugin
-	res.json({
+  req.stack.push("Finally")
+  //use our plugin
+  res.json({
     message:"the stack is",
     stack:req.stack
-  })
+  });
 })
 //Pass Object to add to req, or res
 .before({
