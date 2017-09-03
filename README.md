@@ -28,10 +28,63 @@ let reqRes = new ReqRes((req,res)=>{
 
 //point to this module in your serverless.yaml file
 module.exports = reqRes.run
+//or for mutil function module's
+module.exports = {get:reqRes.run}
+```
+## Extendable with Plugins and .before()!
 
+**Plugins will run globally on all resReq Objects when .run is called.**
+
+**Alternatively, you can use reqRes.before() to extend a single function**
+
+include the plugins module
+
+```javascript
+const ReqRes = require('Lambda-ReqRes');
+//include the plugins module
+const reqResPlugins = require('Lambda-ReqRes/plugins');
 ```
 
-## Some Examples
+create a plugin that vaildates user or sends back a 404 with a custom message
+```
+
+reqResPlugins.add((res,req, lambdaRequest)=>{
+  return new Promise((fullfill, reject)=>{
+      getUser(req.headers.token).then((user)=>{
+        req.user = user
+        fulfill()
+      }).catch(reject)  
+  })
+  req.timestamp = new Date.now()
+})
+
+//create a custom res for a specal usecase
+reqResPlugins.add((res,req, lambdaRequest)=>{
+  res.notFound = (message)=>{
+    if(!message) message = "404 - Not Found."
+      lambdaRequest.callback(null, {
+            statusCode: 404,
+            headers:{},
+            body: message,
+      })
+  }
+})
+
+
+let reqRes = new ReqRes((req,res)=>{
+  //use first pugin to get req.user  
+  res.send("hello! " + req.user.firstName)
+})
+//catch a plugin rejectcion
+.catch((errors ,req,res, lambdaRequest)=>{
+  //use second pugin to catch an error (first plugin rejected it's promise)
+  res.notFound("User Not Found")
+})
+```
+
+
+
+## Some more Examples
 
 ### get Request headers
 
@@ -65,11 +118,16 @@ try{
 ```
 # ReqRes Module
 Ex: ``` reqRes = new ReqRes((req,res)=>{...})```
-.run(event, contex, callback)
-.context(([contex])
-.event([event])
-.before(Callback|Object)
-.catch(Callback)
+
+**.run(event, contex, callback)** handle raw lambda function call
+
+**.context(([contex])** get/update raw lambda contex
+
+**.event([event])**  get/update raw lambda event
+
+**.before(Callback|Object)** runs a callback before main function
+
+**.catch(Callback)** catch plugin or .before errors before main function
 
 
 
@@ -259,6 +317,7 @@ fulfill the lamba function with a string (such as html)
 
 
 **Returns:** lambda callback parameters
+
 
 ## License
 
