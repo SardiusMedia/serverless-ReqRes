@@ -1,16 +1,24 @@
 {
   "name": "serverless-req-res",
   "description": "ReqRes is a light weight \"Express.js like\" Request and Response handler (with plug-in support) for Serverless Lambda functions",
-  "version": "0.1.8",
+  "version": "0.2.2",
   "main": "lib/index.js",
   "author": "Sardius Media",
   "repository": "sardiusmedia/serverless-ReqRes",
   "license": "MIT",
   "scripts": {
-  },
-  "dependencies":{
-    "serverless-req-res-plugins": "file:lib/plugins/index.js"
+    "compile": "babel src --out-dir lib",
+    "coveralls": "cat ./coverage/lcov.info | coveralls",
+    "prepublish": "npm run compile",
+    "test": "babel-node ./node_modules/.bin/isparta cover _mocha"
   },
   "devDependencies": {
+    "babel-cli": "*",
+    "babel-preset-es2015-node4": "*",
+    "coveralls": "*",
+    "chai": "*",
+    "isparta": "*",
+    "mocha": "*",
+    "sinon": "*"
   }
 }
