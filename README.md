@@ -141,13 +141,12 @@ Chainable Functions  to run (synchronously) before main function
 > 
 > **Param 'Callback':** Function to run before your main function (usefull for exdending the req or res objects) 
 > 
-> **Returns:** null
-
+> **Returns:** undefined
 
 Example:
 ```javascript
 
-//
+//set req.server
 reqRes.before({req:{
   "server":process.env.serverName
 }})
@@ -179,7 +178,7 @@ Catches any errors in any of the .before functions
 > 
 > **Param 'Callback':** Function that runs (after all befores have ran) and one or more befores threw a Promse reject   
 > 
-> **Returns:** null
+> **Returns:** undefined
 Example 
 
 ```javascript
@@ -197,7 +196,7 @@ supports both get and put of the lambda contex
 > 
 > **Param 'contex':** If set, it will update the context 
 > 
-> **Returns:** contex (if parameters are empty)
+> **Returns:** contex (if parameters are empty) or undefined 
 
 ## reqRes.event([event])
 
@@ -206,7 +205,7 @@ supports both get and put of the lambda event
 > 
 > **Param 'event':** If set, it will update the context 
 > 
-> **Returns:** event (if parameters are empty)
+> **Returns:** event (if parameters are empty) or undefined
 
 ## reqRes.run(event, contex, callback)
 Handles the raw lambda request
