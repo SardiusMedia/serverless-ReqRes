@@ -268,7 +268,7 @@ returns
 [
     {
         "message": "undefinedVar is not defined",
-        "stack": "ReferenceError: undefinedVar is not defined at ReqRes.before.req.stack ({youePath}dev.js:139:3)  
+        "stack": "ReferenceError: undefinedVar is not defined at ReqRes.before.req.stack ({above}}.js:2:4)  
         at checkFulfill ({{node_modules}}/index.js:187:21)"
     }
 ]
