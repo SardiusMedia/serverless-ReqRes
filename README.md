@@ -125,7 +125,7 @@ try{
 var reqRes = new ReqRes((req,res)=>{...}); 
 ```
 
-**reqRes.before(Callback|Object)** runs a callback before main function
+[reqRes.before(Callback|Object)](#before) runs a callback before main function
 
 **reqRes.catch(Callback)** catch plugin or .before errors before main function
 
@@ -135,7 +135,12 @@ var reqRes = new ReqRes((req,res)=>{...});
 
 **reqRes.run(event, contex, callback)** handle raw lambda function call
 
-## reqRes.before(Callback|Object)
+## before
+```javascript
+reqRes.before((req,res,lambdaRequest)=>{
+  req.userId = 123
+})
+```
 Chainable Functions  to run (synchronously) before main function 
 > **Type:** Function
 > 
