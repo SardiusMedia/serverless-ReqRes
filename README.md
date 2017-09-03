@@ -1,6 +1,6 @@
 # serverless-ReqRes
 
-A light weight Express like Request and Response handler for serverless lambda functions
+A light weight (<8kb) Express like Request and Response handler for serverless lambda functions
 
 ## Getting Started
 
