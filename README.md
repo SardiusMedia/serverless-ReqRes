@@ -73,11 +73,15 @@ reqResPlugins.add((res,req, lambdaRequest)=>{
 
 let reqRes = new ReqRes((req,res)=>{
   //use first pugin to get req.user  
-  res.send("hello! " + req.user.firstName)
+  res.send("hello! "+req.user.firstName + " it's now "+req.now )
+})
+//set req.now for only this function
+.before((errors ,req,res, lambdaRequest)=>{
+  req.now = new Date.now()
 })
 //catch a plugin rejectcion
 .catch((errors ,req,res, lambdaRequest)=>{
-  //use second pugin to catch an error (first plugin rejected it's promise)
+  //use second plugin to catch an error (first plugin rejected it's promise)
   res.notFound("User Not Found")
 })
 ```
