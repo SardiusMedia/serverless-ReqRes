@@ -96,7 +96,7 @@ let reqRes = new ReqRes((req,res)=>{
 console.log(req.headers)
 ```
 
-### set Request headers
+### set Response headers
 
 ```javascript
 res.headers({"foo":"bar"})
