@@ -19,18 +19,28 @@ var ReqRes = require('serverless-ReqRes');
 Get the Res and Req handlers:
 
 ```javascript
-//serverlessEndpoint.com?userName="fooBar"
+//file: handler.js
+//serverlessEndpoint.com/getExample?userName="fooBar"
 var reqRes = new ReqRes((req,res)=>{
   res.json({
     hello: req.params.userName
   })
 })
 
-//point to this module in your serverless.yaml file
-module.exports = reqRes.run
-//or for mutil function module's
 module.exports = {get:reqRes.run}
 ```
+add the function to serverless.yaml
+```yaml
+functions:
+  getExample:
+    handler: src/handler.get
+    description: an example of useing ReqRes
+    events:
+      - http:
+          method: GET
+          path: getExample
+```
+
 ## Extendable with Plugins and .before()!
 
 **Plugins will run globally on all resReq Objects when .run is called.**
