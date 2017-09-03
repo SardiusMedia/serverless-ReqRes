@@ -1,13 +1,13 @@
 # serverless-ReqRes
 
-A light weight (<8kb) Express like Request and Response handler for serverless lambda functions
+A light weight Express like Request and Response handler for serverless lambda functions
 
 ## Getting Started
 
 Install it via npm:
 
 ```shell
-npm install serverless-ReqRes --save
+npm install serverless-req-res --save
 ```
 
 And include in your project:
