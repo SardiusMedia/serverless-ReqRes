@@ -207,8 +207,10 @@ var reqRes = new ReqRes(
 ); 
 ```
 On serverless request, this 'constructor callback' will run after all [.before()](#before) and plugins have ran.
- [req](#req-object) Stores lambad request (headers, query parameters, url parameters...)
- [res](#res-object) Handle a response (json,jsonp,text,redritcs...)
+
+[Req](#req-object) Stores lambad request (headers, query parameters, url parameters...)
+
+[Res](#res-object) Handle a response (json,jsonp,text,redritcs...)
 
 ## before
 ```javascript
