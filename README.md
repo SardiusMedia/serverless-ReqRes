@@ -96,7 +96,48 @@ let reqRes = new ReqRes((req,res)=>{
 })
 ```
 
-
+### NOTE: All plugins and before()s are synchronously called
+```
+var handler = new ReqRes((req, res)=>{
+	req.stack.push("Finally")
+	//use our plugin
+	res.json({
+    message:"the stack is",
+    stack:req.stack
+  })
+})
+//Pass Object to add to req, or res
+.before({
+	req:{
+		stack:[]
+	}})
+//Passing a function that returns a Proimise will wait unfil it is resolved before running any other "before"
+.before((req,res,lambda)=>{
+	return new Promise((fulfill,reject)=>{
+		setTimeout(()=>{
+			req.stack.push("First")
+			fulfill()
+		},1000)
+	})
+})
+.before((req,res,lambda)=>{
+	req.stack.push("Second")
+})
+.catch((errors, req,res, lambda)=>{
+	res.error(errors)
+})
+```
+Returns
+```json
+{
+    "message": "stack is",
+    "stack": [
+        "First",
+        "Second",
+        "Finally"
+    ]
+}
+```
 
 
 ## ServerlessEvent
