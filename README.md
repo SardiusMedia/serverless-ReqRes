@@ -111,7 +111,7 @@ res.json({
 })
 ```
 
-### Handel a JS Error
+### Handle a JS Error
 Returns a 400 json response with error message and stack trace 
 ```javascript
 try{
