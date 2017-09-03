@@ -2,7 +2,10 @@
 var _plugins = require("./plugins");
 var _ReqRes = function(event, context, callback) {
     var _headers
-
+    var update = (serverlessObject)=>{
+        event = serverlessObject.event,
+        context = serverlessObject.context
+    }
     //context.callbackWaitsForEmptyEventLoop = false
     //send html
     var send = (statusCode, body) => {
@@ -107,6 +110,7 @@ var _ReqRes = function(event, context, callback) {
     }
     
     return {
+        update,
         req:{
             query,
             body,
@@ -134,7 +138,8 @@ module.exports = function (runCallback){
     this.run = (event, context, callback) => {
         event   = Object.assign(event, _event);
         context = Object.assign(context, _context);
-        var {req, res} = new _ReqRes(event, context, callback);
+        this.Lambda = {event, context, callback}
+        var {req, res, update} = new _ReqRes(event, context, callback);
         var pRomises
         var plugins = _plugins.get();
         _befores = _befores.concat(plugins)
@@ -155,13 +160,24 @@ module.exports = function (runCallback){
 
             var checkFulfill = ()=>{
                 i++;
+                update(this.Lambda)
                 if(i==len){
                     
                     if(hasErrors && _catch){
-                        return _catch(req.ReqResErrors,req,res)
-
+                        _catch(req.ReqResErrors,req,res,this.Lambda)
+                    }
+                    else if(_catch){
+                        try{
+                            runCallback(req,res,this.Lambda)
+                        }catch(e){
+                             _catch([{
+                                message:e.message,
+                                stack:e.stack
+                            }],req,res,this.Lambda)
+                        }
                     }
                     else{
+
                         runCallback(req,res)
                     }
                 }
@@ -220,13 +236,16 @@ module.exports = function (runCallback){
     }
 
     this.event = (event)=>{
-       _event = Object.assign(_event, event)
-        return this
+        if(typeof event == "object")
+             _event = Object.assign(_event, event);
+    
+        return _event
     }
 
     this.context = (context)=>{
-       _context = Object.assign(_context, context)
-        return this
+        if(typeof context == "object")
+            _context = Object.assign(_context, context);
+        return _context
     }
     
     return this
