@@ -125,46 +125,15 @@ try{
 var reqRes = new ReqRes((req,res)=>{...}); 
 ```
 
-**reqRes.run(event, contex, callback)** handle raw lambda function call
+**reqRes.before(Callback|Object)** runs a callback before main function
+
+**reqRes.catch(Callback)** catch plugin or .before errors before main function
 
 **reqRes.context(([contex])** get/update raw lambda contex
 
 **reqRes.event([event])**  get/update raw lambda event
 
-**reqRes.before(Callback|Object)** runs a callback before main function
-
-**reqRes.catch(Callback)** catch plugin or .before errors before main function
-
-
-
-## reqRes.run(event, contex, callback)
-Handles the raw lambda request
-> **Type:** Function
-> 
-> **Param 'event':**  Lambda's request event
-> 
-> **Param 'contex':**  Lambda's contex
-> 
-> **Param 'callback':** the lambda function to output 
-> 
-> **Returns:** currently set header object
-
-## reqRes.context([contex]);
-supports both get and put of the lambda contex
-> **Type:** Function
-> 
-> **Param 'contex':** If set, it will update the context 
-> 
-> **Returns:** contex (if parameters are empty)
-
-## reqRes.event([event])
-
-supports both get and put of the lambda event
-> **Type:** Function
-> 
-> **Param 'event':** If set, it will update the context 
-> 
-> **Returns:** event (if parameters are empty)
+**reqRes.run(event, contex, callback)** handle raw lambda function call
 
 ## reqRes.before(Callback|Object)
 Chainable Functions  to run (synchronously) before main function 
@@ -221,6 +190,56 @@ reqRes.before((req,res)=>{
   res.error(errors)
 })
 ```
+
+## reqRes.run(event, contex, callback)
+Handles the raw lambda request
+> **Type:** Function
+> 
+> **Param 'event':**  Lambda's request event
+> 
+> **Param 'contex':**  Lambda's contex
+> 
+> **Param 'callback':** the lambda function to output 
+> 
+> **Returns:** currently set header object
+
+## reqRes.context([contex]);
+supports both get and put of the lambda contex
+> **Type:** Function
+> 
+> **Param 'contex':** If set, it will update the context 
+> 
+> **Returns:** contex (if parameters are empty)
+
+## reqRes.event([event])
+
+supports both get and put of the lambda event
+> **Type:** Function
+> 
+> **Param 'event':** If set, it will update the context 
+> 
+> **Returns:** event (if parameters are empty)
+
+## reqRes.context([contex]);
+supports both get and put of the lambda contex
+> **Type:** Function
+> 
+> **Param 'contex':** If set, it will update the context 
+> 
+> **Returns:** contex (if parameters are empty)
+
+## reqRes.run(event, contex, callback)
+Handles the raw lambda request
+> **Type:** Function
+> 
+> **Param 'event':**  Lambda's request event
+> 
+> **Param 'contex':**  Lambda's contex
+> 
+> **Param 'callback':** the lambda function to output 
+> 
+> **Returns:** currently set header object
+
 
 # Req Object
 
