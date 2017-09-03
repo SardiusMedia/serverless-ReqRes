@@ -50,15 +50,13 @@ functions:
 include the plugins module
 
 ```javascript
-var ReqRes = require('serverless-ReqRes');
-//include the plugins module
-var reqResPlugins = require('serverless-ReqRes/plugins');
+var ReqRes = require('serverless-req-res');
 ```
 
 create two plugins that vaildates user and sends back a 404 with a custom message
 ```javascript
 //varify user based off token
-reqResPlugins.add((res,req, ServerlessEvent)=>{
+ReqRes('plugin', (res,req, ServerlessEvent)=>{
   return new Promise((fullfill, reject)=>{
       getUser(req.headers.token).then((user)=>{
         req.user = user
@@ -69,7 +67,7 @@ reqResPlugins.add((res,req, ServerlessEvent)=>{
 })
 
 //create a custom response for a "specal usecase"
-reqResPlugins.add((res,req, ServerlessEvent)=>{
+ReqRes('plugin', (res,req, ServerlessEvent)=>{
   res.notFound = (message)=>{
     if(!message) message = "404 - Not Found."
       ServerlessEvent.callback(null, {
@@ -186,6 +184,8 @@ try{
 
 [ReqRes(Callback)](#constructor) Your main function to get access to res and req obejcts
 
+[ReqRes("plugin", Callback)](#plugin-constructor) Register a plugin that will run on all serverless requests
+
 [reqRes.before(Callback|Object)](#before) runs a callback before main function
 
 [reqRes.catch(Callback)](#catch) catch plugin or .before errors along with your main [constructor function](#constructor)
@@ -196,7 +196,7 @@ try{
 
 [reqRes.run(rawServerlessEvent, rawServerlessContex, rawServerlessCallback)](#run) handle raw serverless function call
 
-## constructor
+## Constructor
 ```javascript 
 var reqRes = new ReqRes(
 //the constructor 
@@ -211,6 +211,21 @@ On serverless request, this 'constructor callback' will run after all [.before()
 [Req](#req-object) Stores lambad request (headers, query parameters, url parameters...)
 
 [Res](#res-object) Handle a response (json,jsonp,text,redritcs...)
+
+## Plugin Constructor
+```javascript 
+ReqRes( 
+//denote that this is a plugin not a request 
+'plugin',
+//the constructor 
+  (req,res,ServerlessEvent)=>{
+    //send the request object to browser 
+    res.json(req)
+  }
+); 
+```
+when the first parameter of ReqRes is a string "plugin" the callback will run before every request made
+**Note:** Plugins return undefined and you cannot use .before or any of the fallowing functions
 
 ## before
 ```javascript
