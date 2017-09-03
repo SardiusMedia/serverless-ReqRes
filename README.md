@@ -46,7 +46,7 @@ const reqResPlugins = require('Lambda-ReqRes/plugins');
 ```
 
 create a plugin that vaildates user or sends back a 404 with a custom message
-```
+```javascript
 
 reqResPlugins.add((res,req, lambdaRequest)=>{
   return new Promise((fullfill, reject)=>{
@@ -88,20 +88,20 @@ let reqRes = new ReqRes((req,res)=>{
 
 ### get Request headers
 
-```
+```javascript
 console.log(req.headers)
 ```
 
 ### set Request headers
 
-```
+```javascript
 res.headers({"foo":"bar"})
 console.log(res.headers())
 ```
 
 ### Return json
 
-```
+```javascript
 res.json({
   works:true;
 })
@@ -109,7 +109,7 @@ res.json({
 
 ### Handel a JS Error
 Returns a 400 json response with error message and stack trace 
-```
+```javascript
 try{
  var1.anUndefinedVar = aNotherUndefinedVar;
 }catch(e){
@@ -117,7 +117,10 @@ try{
 }
 ```
 # ReqRes Module
-Ex: ``` reqRes = new ReqRes((req,res)=>{...})```
+Ex: 
+```javascript 
+reqRes = new ReqRes((req,res)=>{...})
+```
 
 **.run(event, contex, callback)** handle raw lambda function call
 
@@ -170,7 +173,7 @@ Chainable Functions  to run (synchronously) before main function
 
 
 Examples
-```
+```javascript
 
 //
 reqRes.before({req:{
@@ -207,7 +210,7 @@ Catches any errors in any of the .before functions
 > **Returns:** null
 Example 
 
-```
+```javascript
 reqRes.before((req,res)=>{
     undefinedVar.value = 12345;
 })
@@ -294,7 +297,10 @@ fulfill the lamba function with an JS Thrown Error or Object;
 
 if Thrown Error is past lambda will be called back with json body
 
-``` {stack:"String of Stack trace", message:"error message"} ``` 
+```javascript 
+{stack:"String of Stack trace", message:"error message"} 
+
+``` 
 
 If an object is past it will return your custom error object as jason body
 
