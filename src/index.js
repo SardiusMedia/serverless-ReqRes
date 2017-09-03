@@ -1,8 +1,8 @@
 'use strict';
+var _plugins = require("./plugins");
+var _ReqRes = function(event, context, callback) {
+    var _headers
 
-//var helpers = require("./helpers")
-module.exports = function(event, context, cb, options) {
-    var _headers = {}
     //context.callbackWaitsForEmptyEventLoop = false
     //send html
     var send = (statusCode, body) => {
@@ -19,39 +19,50 @@ module.exports = function(event, context, cb, options) {
             }
         }
 
-        cb(null, {
+        callback(null, {
             statusCode: statusCode,
-            headers:_headers,
             body: body,
         });
     }
 
     //send json
-    var json = (statusCode, object) => {
+    var json = (statusCode, object, cb = false) => {
         if(typeof object == "undefined" && typeof statusCode != "undefined"){
             object = statusCode;
             statusCode = 200;
         }
 
-        var callback = false;
-        if(event.queryStringParameters){
+        
+        if(typeof cb != "string" && event.queryStringParameters){
             if(event.queryStringParameters.callback){
-                callback =  event.queryStringParameters.callback
+                cb =  event.queryStringParameters.callback
             }
             else if(event.queryStringParameters.cb){
-                callback =  event.queryStringParameters.cb
+                cb =  event.queryStringParameters.cb
             }
         }
         
-        if(!callback){
+        if(!cb){
             send(statusCode, JSON.stringify(object))
         }
         else{
-            send(statusCode, callback+'('+JSON.stringify(object)+');')
+            send(statusCode, cb+'('+JSON.stringify(object)+');')
         }
         
     }
-
+    var jsonp = (statusCode, object, cb)=>{
+        if(typeof object == "undefined" && typeof statusCode != "undefined"){
+            object = statusCode;
+            statusCode = 200;
+            cb = "callback"
+        }
+        else if(typeof object == "string" && typeof statusCode != "undefined"){
+            object = statusCode;
+            statusCode = 200;
+            cb = object
+        }
+        json(statusCode, object, cb)
+    }
     var error = (err) => {
         if(err instanceof Error){
             json(400,{message:err.message, stack:err.stack}); 
@@ -62,7 +73,7 @@ module.exports = function(event, context, cb, options) {
     }
 
     var redirect = (Location)=>{
-        cb(null, {
+        callback(null, {
             statusCode: 301,
             headers: {
                Location
@@ -79,23 +90,13 @@ module.exports = function(event, context, cb, options) {
         }
     }
 
-    var resHeaders = (headers)=>{
-        if(typeof headers !== "undefined")
-            _headers = headers;
-        return _headers;
-    }
-
-    var resHeader = (header)=>{
-         if(typeof headers !== "undefined")
-            _headers = Object.assign(_headers, header);
-    }
-
 
     var query = event.queryStringParameters || {}
     var body = ""
     var params = event.pathParameters || {}
     var accountId = null;
     var headers = event.headers
+    
 
 
     if(event.body){
@@ -117,9 +118,116 @@ module.exports = function(event, context, cb, options) {
             json,
             redirect,
             error,
-            handle,
-            headers:resHeaders,
-            header:resHeader
-        },
+            handle
+        }
     };
+}
+
+
+
+module.exports = function (runCallback){
+    var _befores = []
+    var _catch = false;
+    var _event = {} 
+    var _context = {}
+
+    this.run = (event, context, callback) => {
+        event   = Object.assign(event, _event);
+        context = Object.assign(context, _context);
+        var {req, res} = new _ReqRes(event, context, callback);
+        var pRomises
+        var plugins = _plugins.get();
+        _befores = _befores.concat(plugins)
+
+        if(_befores.length > 0){
+            
+            var i = 0
+            var len = _befores.length
+            var hasErrors = false;
+            function combine(newReq,newRes){
+              
+                if(typeof newRes == "object")
+                    res =  Object.assign(res,newRes);
+                if(typeof newReq == "object")
+                    req =  Object.assign(req,newReq);
+             
+            }
+
+            var checkFulfill = ()=>{
+                i++;
+                if(i==len){
+                    
+                    if(hasErrors && _catch){
+                        return _catch(req.ReqResErrors,req,res)
+
+                    }
+                    else{
+                        runCallback(req,res)
+                    }
+                }
+                else{
+                    next()
+                }
+            }
+
+            var next = () => {
+                var before = _befores[i];
+                
+                if(typeof before == "function" ){
+                    
+                    before = before(req,res,this.Lambda)
+                    //console.log("function")
+                    Promise.resolve(before).then(checkFulfill)
+                    .catch((error)=>{
+                        hasErrors = true
+                        if(typeof req.ReqResErrors == "undefined"){
+                            req.ReqResErrors = [];
+                        }
+                        if(error instanceof Error){
+                            req.ReqResErrors.push({message:error.message, stack:error.stack}); 
+                          //throw(err) 
+                        }else{
+                           req.ReqResErrors.push(error)
+                        }
+                        
+                        checkFulfill()
+                    })
+                }
+                else{
+                    //console.log(before)
+                    combine(before.req,before.res)
+                    checkFulfill()
+                }                    
+            }
+            next()
+            
+        }
+        else{
+           runCallback(req, res) 
+        }
+        
+    }
+
+    
+    this.before = (callback)=>{
+        _befores.push(callback)
+        return this
+    }
+
+    this.catch = (callback)=>{
+        _catch = callback;
+        return this
+    }
+
+    this.event = (event)=>{
+       _event = Object.assign(_event, event)
+        return this
+    }
+
+    this.context = (context)=>{
+       _context = Object.assign(_context, context)
+        return this
+    }
+    
+    return this
 }
