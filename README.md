@@ -19,9 +19,10 @@ const ReqRes = require('Lambda-ReqRes');
 Get the Res and Req handlers:
 
 ```javascript
+//lambdaEndpoint.com?userName="fooBar"
 let reqRes = new ReqRes((req,res)=>{
   res.json({
-    hello:"world"
+    hello: req.params.userName
   })
 })
 
@@ -62,21 +63,29 @@ try{
   res.error(e)
 }
 ```
-# reqRes Module
-Ex: ``` reqRes = new ReqRes((req,res)=>{...  ```
-## ReqRes.run(event, contex, callback)
-Handles the lambda request
+# ReqRes Module
+Ex: ``` reqRes = new ReqRes((req,res)=>{...})```
+.run(event, contex, callback)
+.context(([contex])
+.event([event])
+.before(Callback|Object)
+.catch(Callback)
+
+
+
+## reqRes.run(event, contex, callback)
+Handles the raw lambda request
 > **Type:** Function
 > 
 > **Param 'event':**  Lambda's request event
 > 
 > **Param 'contex':**  Lambda's contex
 > 
-> **Param 'callback':** the lambda function to call
+> **Param 'callback':** the lambda function to output 
 > 
 > **Returns:** currently set header object
 
-## ReqRes.context([contex]);
+## reqRes.context([contex]);
 supports both get and put of the lambda contex
 > **Type:** Function
 > 
@@ -84,7 +93,7 @@ supports both get and put of the lambda contex
 > 
 > **Returns:** contex (if parameters are empty)
 
-## ReqRes.event([event])
+## reqRes.event([event])
 
 supports both get and put of the lambda event
 > **Type:** Function
@@ -93,7 +102,7 @@ supports both get and put of the lambda event
 > 
 > **Returns:** event (if parameters are empty)
 
-## ReqRes.before(Callback|Object)
+## reqRes.before(Callback|Object)
 Chainable Functions  to run (synchronously) before main function 
 > **Type:** Function
 > 
@@ -118,10 +127,12 @@ reqRes.before({req:{
     }).catch(reject)
   })
 })
+//this will wait until the proimse from .before (above) has resolved, then 
 //add a custom response
 .before((req,res)=>{
-    res.jsonUpdateDate = (data)=>{
-      data.updatedDate = new Date.now();
+    res.jsonUpdated = (data)=>{
+      data.accessedAt = new Date.now();
+      data.accessedBy = req.user.id;
       res.json(data)
     }
 })
@@ -130,7 +141,22 @@ reqRes.before({req:{
 ```
 
 ## ReqRes.catch(Callback)
+Catches any errors in any of the .before functions
+> **Type:** Function
+> 
+> **Param 'Callback':** Function that runs (after all befores have ran) and one or more befores threw a Promse reject   
+> 
+> **Returns:** null
+Example 
 
+```
+reqRes.before((req,res)=>{
+    undefinedVar.value = 12345;
+})
+.catch((errors, req, res)=>{
+  res.error(errors)
+})
+```
 
 # *Req Object*
 
