@@ -294,6 +294,20 @@ Waits for proimsie to resolve before fullfilling the response (res.json) or disp
 > **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
 > 
 > **Returns:** lambda callback parameters
+>
+> **NOTE** if queryparam "cb" or "callback" is set, jsonp will be returned
+
+## res.jsonp(StatusCode:int, Body:Object, callback:string)
+
+### OR res.json(Body:Object, callback:string)
+
+fulfill the lamba function with a string (such as html)
+
+> **Type:** Function
+> 
+> **Param 'Body':**  Return this string to lambda
+> 
+> **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
 
 ## res.error(Javacript Error) *OR* res.error(Object)
 
@@ -312,18 +326,7 @@ If an object is past it will return your custom error object as jason body
 > 
 > **Returns:** lambda callback parameters
 
-## res.json(StatusCode:int, Body:String)
 
-### OR res.json(Body:String)
-
-fulfill the lamba function with a string (such as html)
-
-> **Type:** Function
-> 
-> **Param 'Body':**  Return this string to lambda
-> 
-> **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
-> 
 
 
 **Returns:** lambda callback parameters
