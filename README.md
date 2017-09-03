@@ -188,7 +188,7 @@ try{
 
 [reqRes.before(Callback|Object)](#before) runs a callback before main function
 
-[reqRes.catch(Callback)](#catch) catch plugin or .before errors before main function
+[reqRes.catch(Callback)](#catch) catch plugin or .before errors along with your main [constructor function](#constructor)
 
 [reqRes.context(Object)](#context) get/update raw serverless contex
 
@@ -259,10 +259,22 @@ reqRes.before((req,res)=>{
     undefinedVar.value = 12345;
 })
 .catch((errors, req, res)=>{
+  //return the array of errors
   res.error(errors)
 })
 ```
-Catch all .before() and plugin errors
+returns
+```json
+[
+    {
+        "message": "undefinedVar is not defined",
+        "stack": "ReferenceError: undefinedVar is not defined at ReqRes.before.req.stack ({youePath}dev.js:139:3)  
+        at checkFulfill ({{node_modules}}/index.js:187:21)"
+    }
+]
+```
+
+Catch all .before() and plugin errors and then your [constructor function](#constructor)
 > **Type:** Function
 > 
 > **Param 'Callback':** Function that runs (after all befores have ran) and one or more befores threw a Promse reject   
