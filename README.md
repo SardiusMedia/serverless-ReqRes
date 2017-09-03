@@ -112,7 +112,7 @@ res.json({
 ```
 
 ### lambdaRequest
-In examples shown with lambdaRequest ([constructor](#constructor), [before()](#before), [plugins](extendable-with-plugins-and-.before()!))
+In examples shown with lambdaRequest ([constructor](#constructor), [before()](#before), [plugins](#extendable-with-plugins-and-.before()!))
 
 ### Handle a JS Error
 Returns a 400 json response with error message and stack trace 
