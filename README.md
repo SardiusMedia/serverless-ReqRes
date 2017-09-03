@@ -19,22 +19,18 @@ const ReqRes = require('Lambda-ReqRes');
 Get the Res and Req handlers:
 
 ```javascript
-let A_Lambda_Handler = (event, context, callback) => {
-	{req, res} = new ReqRes(event, context, callback);
-    //... Examples (below) here
+let handler = new ReqRes((req,res)=>{
+  res.json({
+    hello:"world"
+  })
+})
+
+//point to this module in your serverless.yaml file
+module.exports = handler.run
 
 ```
 
-Non-ES6
-```javascript
-	var reqRes = new ReqRes(event, context, callback);
-	var req = reqRes.req;
-	var res = reqRes.res;
-  //... Examples (below) here
-```
-
-
-## Examples
+## Some Examples
 
 ### get Request headers
 
@@ -57,45 +53,14 @@ res.json({
 })
 ```
 
-### Return JS Error
+### Handel a JS Error
 
 ```
 try{
- var1 = anUndefinedVar;
+ var1.anUndefinedVar = aNotherUndefinedVar;
 }catch(e){
   res.error(e)
 }
-```
-
-
-### Let Proimises handle everything
-```
-//a async function to query something
-var query = (queryString)=>{
-  return new Promise((fulfill)=>{
-    setTimeout(()=>{
-      fulfill(queryString)
-    },1000)
-  })
-}
-//call function with url query params from requester
-res.handle(query(req.query))
-
-```
-
-### Handel Proimise Errors
-```
-//a async function to query something
-var query = (queryString)=>{
-  return new Promise((fulfill,reject)=>{
-    setTimeout(()=>{
-      var1 = anUndefinedVar;
-    },1000)
-  }).catch(reject)
-}
-//call function with url query params from requester
-res.handle(query(req.query))
-
 ```
 
 # *Req Object*
