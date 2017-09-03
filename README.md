@@ -63,7 +63,6 @@ ReqRes('plugin', (res,req, ServerlessEvent)=>{
         fulfill()
       }).catch(reject)  
   })
-  req.timestamp = new Date.now()
 })
 
 //create a custom response for a "specal usecase"
@@ -93,8 +92,7 @@ let reqRes = new ReqRes((req,res)=>{
   res.notFound("User Not Found")
 })
 ```
-
-### NOTE: All plugins and before()s are synchronously called
+**NOTE:** All plugins and before()s are synchronously called
 ```javascript
 var handler = new ReqRes((req, res)=>{
   req.stack.push("Finally")
@@ -214,18 +212,26 @@ On serverless request, this 'constructor callback' will run after all [.before()
 
 ## Plugin Constructor
 ```javascript 
-ReqRes( 
-//denote that this is a plugin not a request 
-'plugin',
-//the constructor 
-  (req,res,ServerlessEvent)=>{
-    //send the request object to browser 
-    res.json(req)
-  }
-); 
+//fake auth plugin
+//first param is string "plugin",
+//seond pram is the callback to run apon a serverless request
+ReqRes('plugin', (res,req, ServerlessEvent)=>{
+  return new Promise((fullfill, reject)=>{
+      getUser(req.headers.token).then((user)=>{
+        req.user = user
+        fulfill()
+      }).catch((e){
+        req.user = null,
+        req.userError = e.message
+        fulfill()
+      })  
+  })
+})
+//note .before() will be undefined
+//.before()
 ```
 when the first parameter of ReqRes is a string "plugin" the callback will run before every request made
-**Note:** Plugins return undefined and you cannot use .before or any of the fallowing functions
+**Note:** Plugins are not chanable and return undefined. You cannot use .before or any of the fallowing functions
 
 ## before
 ```javascript
