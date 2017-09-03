@@ -7,13 +7,13 @@ A light weight Express like Request and Response handler for serverless lambda f
 Install it via npm:
 
 ```shell
-npm install serverless-ReqRes --save
+npm install serverless-req-res --save
 ```
 
 And include in your project:
 
 ```javascript
-var ReqRes = require('serverless-ReqRes');
+var ReqRes = require('serverless-req-res');
 ```
 
 Get the Res and Req handlers:
