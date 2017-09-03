@@ -13,7 +13,7 @@ npm install serverless-ReqRes --save
 And include in your project:
 
 ```javascript
-var ReqRes = require('serverless-ReqRes');
+var ReqRes = require('serverless-req-res');
 ```
 
 Get the Res and Req handlers:
