@@ -45,7 +45,7 @@ const ReqRes = require('Lambda-ReqRes');
 const reqResPlugins = require('Lambda-ReqRes/plugins');
 ```
 
-create a plugin that vaildates user or sends back a 404 with a custom message
+create two plugins that vaildates user and sends back a 404 with a custom message
 ```javascript
 
 reqResPlugins.add((res,req, lambdaRequest)=>{
@@ -121,20 +121,17 @@ try{
 }
 ```
 # ReqRes Module
-Ex: 
-```javascript 
-reqRes = new ReqRes((req,res)=>{...})
-```
+Ex: ```javascript reqRes = new ReqRes((req,res)=>{...});```
 
-**.run(event, contex, callback)** handle raw lambda function call
+**reqRes.run(event, contex, callback)** handle raw lambda function call
 
-**.context(([contex])** get/update raw lambda contex
+**reqRes.context(([contex])** get/update raw lambda contex
 
-**.event([event])**  get/update raw lambda event
+**reqRes.event([event])**  get/update raw lambda event
 
-**.before(Callback|Object)** runs a callback before main function
+**reqRes.before(Callback|Object)** runs a callback before main function
 
-**.catch(Callback)** catch plugin or .before errors before main function
+**reqRes.catch(Callback)** catch plugin or .before errors before main function
 
 
 
@@ -205,7 +202,7 @@ reqRes.before({req:{
 
 ```
 
-## ReqRes.catch(Callback)
+## reqRes.catch(Callback)
 Catches any errors in any of the .before functions
 > **Type:** Function
 > 
@@ -223,7 +220,7 @@ reqRes.before((req,res)=>{
 })
 ```
 
-# *Req Object*
+# Req Object
 
 ## req.query 
 
@@ -235,7 +232,7 @@ reqRes.before((req,res)=>{
 
 **Type:** String | Object 
 
-**Returns:** Post/put body. If body is a JSON string, the string will be parese to Object
+**Returns:** HTTP request body. If body is a JSON string, the string will be parese to Object
 
 ## req.params 
 
@@ -269,21 +266,19 @@ Get and Set the headers
 > 
 > **Returns:** currently set header object
 
-## res.handle(PROMISE [, HEADERS])
+## res.handle(Promise [, Headers])
 
 Waits for proimsie to resolve before fullfilling the response (res.json) or displaying error (res.error) 
 > **Type:** Function
 > 
 > **Param 'Promise**':  A JS Promise
 > 
-> **Pram 'HEADERS' (Optinal):** key/value object of headers to set  
+> **Pram 'Headers' (Optinal):** key/value object of headers to set  
 > 
 > **Returns:** lambda callback parameters
 
 
-## res.json(StatusCode:int, Body:Object)
-
-### OR res.json(Body:Object)
+## res.json(StatusCode:int, Body:Object) *OR* res.json(Body:Object)
 
 **fulfill the lamba function with a Json object** 
 
@@ -297,9 +292,7 @@ Waits for proimsie to resolve before fullfilling the response (res.json) or disp
 >
 > **NOTE**: If queryparam "cb" or "callback" is set, jsonp will be returned
 
-## res.jsonp(StatusCode:int, Body:Object, callback:string)
-
-### OR res.jsonp(Body:Object, callback:string)
+## res.jsonp(StatusCode:int, Body:Object, callback:string) *OR* res.jsonp(Body:Object, callback:string)
 
 fulfill the lamba function with a string (such as html)
 
