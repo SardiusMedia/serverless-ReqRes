@@ -4,8 +4,6 @@ const add = (callback)=>{
 	_resReqPlugins.push(callback)
 }
 
-
-
 const get = (name)=>{
 	return _resReqPlugins
 }

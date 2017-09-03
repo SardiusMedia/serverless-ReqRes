@@ -1,24 +1,15 @@
 {
-  "name": "Lambda-ReqRes",
-  "description": "A light weight Express like Request and Response handler for lambda functions",
-  "version": "0.1.0",
+  "name": "serverless-req-res",
+  "description": "ReqRes is a light weight \"Express.js like\" Request and Response handler (with plug-in support) for Serverless Lambda functions",
   "main": "lib/index.js",
-  "author": "mikeRead",
-  "repository": "mikeRead/Lambda-ReqRes",
+  "author": "Sardius Media",
+  "repository": "sardiusmedia/serverless-ReqRes",
   "license": "MIT",
   "scripts": {
-    "compile": "babel src --out-dir lib",
-    "coveralls": "cat ./coverage/lcov.info | coveralls",
-    "prepublish": "npm run compile",
-    "test": "babel-node ./node_modules/.bin/isparta cover _mocha"
+  },
+  "dependencies":{
+    "serverless-req-res-plugins": "file:lib/plugins/index.js"
   },
   "devDependencies": {
-    "babel-cli": "*",
-    "babel-preset-es2015-node4": "*",
-    "coveralls": "*",
-    "chai": "*",
-    "isparta": "*",
-    "mocha": "*",
-    "sinon": "*"
   }
 }
