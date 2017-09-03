@@ -144,7 +144,7 @@ Chainable Functions  to run (synchronously) before main function
 > **Returns:** null
 
 
-Examples
+Example:
 ```javascript
 
 //
@@ -191,18 +191,6 @@ reqRes.before((req,res)=>{
 })
 ```
 
-## reqRes.run(event, contex, callback)
-Handles the raw lambda request
-> **Type:** Function
-> 
-> **Param 'event':**  Lambda's request event
-> 
-> **Param 'contex':**  Lambda's contex
-> 
-> **Param 'callback':** the lambda function to output 
-> 
-> **Returns:** currently set header object
-
 ## reqRes.context([contex]);
 supports both get and put of the lambda contex
 > **Type:** Function
@@ -219,14 +207,6 @@ supports both get and put of the lambda event
 > **Param 'event':** If set, it will update the context 
 > 
 > **Returns:** event (if parameters are empty)
-
-## reqRes.context([contex]);
-supports both get and put of the lambda contex
-> **Type:** Function
-> 
-> **Param 'contex':** If set, it will update the context 
-> 
-> **Returns:** contex (if parameters are empty)
 
 ## reqRes.run(event, contex, callback)
 Handles the raw lambda request
