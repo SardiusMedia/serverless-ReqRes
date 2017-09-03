@@ -295,16 +295,18 @@ Waits for proimsie to resolve before fullfilling the response (res.json) or disp
 > 
 > **Returns:** lambda callback parameters
 >
-> **NOTE** if queryparam "cb" or "callback" is set, jsonp will be returned
+> **NOTE**: If queryparam "cb" or "callback" is set, jsonp will be returned
 
 ## res.jsonp(StatusCode:int, Body:Object, callback:string)
 
-### OR res.json(Body:Object, callback:string)
+### OR res.json(StatusCode:int, Body:Object, callback:string)
 
 fulfill the lamba function with a string (such as html)
 
 > **Type:** Function
 > 
+> **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
+>
 > **Param 'Body':**  Return this string to lambda
 > 
 > **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
