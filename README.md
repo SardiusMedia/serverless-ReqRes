@@ -190,9 +190,9 @@ try{
 
 [reqRes.catch(Callback)](#catch) catch plugin or .before errors along with your main [constructor function](#constructor)
 
-[reqRes.context(Object)](#context) get/update raw serverless contex
+[reqRes.context(Object)](#context) set raw serverless contex
 
-[reqRes.event(Object)](#event)  get/update raw serverless event
+[reqRes.event(Object)](#event)  set raw serverless event
 
 [reqRes.run(rawServerlessEvent, rawServerlessContex, rawServerlessCallback)](#run) handle raw serverless function call
 
@@ -289,7 +289,7 @@ Example
 reqRes.context({callbackWaitsForEmptyEventLoop: false})
 console.log(reqRes.context())
 ```
-supports both get and put of the serverless contex
+set defulats for the serverless context befure .run
 > **Type:** Function
 > 
 > **Param 'contex':** If set, it will update the context 
@@ -301,7 +301,7 @@ supports both get and put of the serverless contex
 reqRes.event({headers: {}})
 console.log(reqRes.event())
 ```
-supports both get and put of the serverless event
+set defulats for the serverless event befure .run
 > **Type:** Function
 > 
 > **Param 'event':** If set, it will update the context 
