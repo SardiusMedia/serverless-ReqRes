@@ -35,7 +35,7 @@ module.exports = {get:reqRes.run}
 
 **Plugins will run globally on all resReq Objects when .run is called.**
 
-**Alternatively, you can use reqRes.before() to extend a single function**
+**Alternatively, you can use [.before()](#before) to extend a single function**
 
 include the plugins module
 
@@ -111,6 +111,9 @@ res.json({
 })
 ```
 
+### lambdaRequest
+In examples shown with lambdaRequest ([constructor](#constructor), [before()](#before), [plugins](extendable-with-plugins-and-.before()!))
+
 ### Handle a JS Error
 Returns a 400 json response with error message and stack trace 
 ```javascript
@@ -121,19 +124,32 @@ try{
 }
 ```
 # ReqRes Module
-```javascript 
-var reqRes = new ReqRes((req,res)=>{...}); 
-```
+
+[ReqRes(Callback)](#constructor) Your main function to get access to res and req obejcts
 
 [reqRes.before(Callback|Object)](#before) runs a callback before main function
 
-**reqRes.catch(Callback)** catch plugin or .before errors before main function
+[reqRes.catch(Callback)](#catch) catch plugin or .before errors before main function
 
-**reqRes.context(([contex])** get/update raw lambda contex
+[reqRes.context(Object)](#context) get/update raw lambda contex
 
-**reqRes.event([event])**  get/update raw lambda event
+[reqRes.event(Object)](#event)  get/update raw lambda event
 
-**reqRes.run(event, contex, callback)** handle raw lambda function call
+[reqRes.run(LambdaEvent, LambdaContex, LambdaCallback)](#run) handle raw lambda function call
+
+## constructor
+```javascript 
+var reqRes = new ReqRes(
+//the constructor 
+  (req,res,LambdaRequest)=>{
+    //send the request object to browser 
+    res.json(req)
+  }
+); 
+```
+On lambda request, this 'constructor callback' will run after all [.before()](#before) and plugins have ran.
+ [req](#req) Stores lambad request (headers, query parameters, url parameters...)
+ [res](#res) Handle a response (json,jsonp,text,redritcs...)
 
 ## before
 ```javascript
@@ -146,7 +162,7 @@ Chainable Functions  to run (synchronously) before main function
 > 
 > **Param 'Callback':** Function to run before your main function (usefull for exdending the req or res objects) 
 > 
-> **Returns:** undefined
+> **Returns:** resReq
 
 Example:
 ```javascript
@@ -173,18 +189,9 @@ reqRes.before({req:{
       res.json(data)
     }
 })
-
-
 ```
 
-## reqRes.catch(Callback)
-Catches any errors in any of the .before functions
-> **Type:** Function
-> 
-> **Param 'Callback':** Function that runs (after all befores have ran) and one or more befores threw a Promse reject   
-> 
-> **Returns:** undefined
-Example 
+## catch
 
 ```javascript
 reqRes.before((req,res)=>{
@@ -194,8 +201,21 @@ reqRes.before((req,res)=>{
   res.error(errors)
 })
 ```
+Catch all .before() and plugin errors
+> **Type:** Function
+> 
+> **Param 'Callback':** Function that runs (after all befores have ran) and one or more befores threw a Promse reject   
+> 
+> **Returns:** resReq
+Example 
 
-## reqRes.context([contex]);
+
+
+## context;
+```javascript
+reqRes.context({callbackWaitsForEmptyEventLoop: false})
+console.log(reqRes.context())
+```
 supports both get and put of the lambda contex
 > **Type:** Function
 > 
@@ -203,8 +223,11 @@ supports both get and put of the lambda contex
 > 
 > **Returns:** contex (if parameters are empty) or undefined 
 
-## reqRes.event([event])
-
+## event
+```javascript
+reqRes.event({headers: {}})
+console.log(reqRes.event())
+```
 supports both get and put of the lambda event
 > **Type:** Function
 > 
@@ -212,7 +235,12 @@ supports both get and put of the lambda event
 > 
 > **Returns:** event (if parameters are empty) or undefined
 
-## reqRes.run(event, contex, callback)
+## run
+```javascript
+var standerdHandler = (event, contex, callback)=>{
+  rewReq.run(event, contex, callback)
+}
+```
 Handles the raw lambda request
 > **Type:** Function
 > 
@@ -222,7 +250,7 @@ Handles the raw lambda request
 > 
 > **Param 'callback':** the lambda function to output 
 > 
-> **Returns:** currently set header object
+> **Returns:** undefined
 
 
 # Req Object
