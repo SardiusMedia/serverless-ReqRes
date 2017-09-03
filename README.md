@@ -1,25 +1,25 @@
-# Lambda-ReqRes
+# serverless-ReqRes
 
-A light weight Express like Request and Response handler for lambda functions
+A light weight Express like Request and Response handler for serverless lambda functions
 
 ## Getting Started
 
 Install it via npm:
 
 ```shell
-npm install Lambda-ReqRes --save
+npm install serverless-ReqRes --save
 ```
 
 And include in your project:
 
 ```javascript
-var ReqRes = require('Lambda-ReqRes');
+var ReqRes = require('serverless-ReqRes');
 ```
 
 Get the Res and Req handlers:
 
 ```javascript
-//lambdaEndpoint.com?userName="fooBar"
+//serverlessEndpoint.com?userName="fooBar"
 var reqRes = new ReqRes((req,res)=>{
   res.json({
     hello: req.params.userName
@@ -40,15 +40,15 @@ module.exports = {get:reqRes.run}
 include the plugins module
 
 ```javascript
-var ReqRes = require('Lambda-ReqRes');
+var ReqRes = require('serverless-ReqRes');
 //include the plugins module
-var reqResPlugins = require('Lambda-ReqRes/plugins');
+var reqResPlugins = require('serverless-ReqRes/plugins');
 ```
 
 create two plugins that vaildates user and sends back a 404 with a custom message
 ```javascript
 //varify user based off token
-reqResPlugins.add((res,req, lambdaRequest)=>{
+reqResPlugins.add((res,req, ServerlessEvent)=>{
   return new Promise((fullfill, reject)=>{
       getUser(req.headers.token).then((user)=>{
         req.user = user
@@ -59,10 +59,10 @@ reqResPlugins.add((res,req, lambdaRequest)=>{
 })
 
 //create a custom response for a "specal usecase"
-reqResPlugins.add((res,req, lambdaRequest)=>{
+reqResPlugins.add((res,req, ServerlessEvent)=>{
   res.notFound = (message)=>{
     if(!message) message = "404 - Not Found."
-      lambdaRequest.callback(null, {
+      ServerlessEvent.callback(null, {
             statusCode: 404,
             headers:{},
             body: message,
@@ -76,11 +76,11 @@ let reqRes = new ReqRes((req,res)=>{
   res.send("hello! "+req.user.firstName + " it's now "+req.now )
 })
 //set req.now for only this function
-.before((req, res, lambdaRequest)=>{
+.before((req, res, ServerlessEvent)=>{
   req.now = new Date.now()
 })
 //catch a plugin rejectcion
-.catch((errors ,req,res, lambdaRequest)=>{
+.catch((errors ,req,res, ServerlessEvent)=>{
   //use second plugin to catch an error (first plugin rejected it's promise)
   res.notFound("User Not Found")
 })
@@ -88,8 +88,18 @@ let reqRes = new ReqRes((req,res)=>{
 
 
 
-## Some more Examples
 
+## ServerlessEvent
+In examples shown with 'ServerlessEvent' ([constructor](#constructor), [before()](#before), [plugins](#extendable-with-plugins-and-before)) The object is the raw Serverless Event as an Object 
+```
+  {
+    event:Object
+    context:Object
+    callback:Function
+  }
+```
+
+## Some more Examples
 ### get Request headers
 
 ```javascript
@@ -111,8 +121,6 @@ res.json({
 })
 ```
 
-### lambdaRequest
-In examples shown with lambdaRequest ([constructor](#constructor), [before()](#before), [plugins](#extendable-with-plugins-and-.before()!))
 
 ### Handle a JS Error
 Returns a 400 json response with error message and stack trace 
@@ -131,29 +139,29 @@ try{
 
 [reqRes.catch(Callback)](#catch) catch plugin or .before errors before main function
 
-[reqRes.context(Object)](#context) get/update raw lambda contex
+[reqRes.context(Object)](#context) get/update raw serverless contex
 
-[reqRes.event(Object)](#event)  get/update raw lambda event
+[reqRes.event(Object)](#event)  get/update raw serverless event
 
-[reqRes.run(LambdaEvent, LambdaContex, LambdaCallback)](#run) handle raw lambda function call
+[reqRes.run(rawServerlessEvent, rawServerlessContex, rawServerlessCallback)](#run) handle raw serverless function call
 
 ## constructor
 ```javascript 
 var reqRes = new ReqRes(
 //the constructor 
-  (req,res,LambdaRequest)=>{
+  (req,res,ServerlessEvent)=>{
     //send the request object to browser 
     res.json(req)
   }
 ); 
 ```
-On lambda request, this 'constructor callback' will run after all [.before()](#before) and plugins have ran.
- [req](#req) Stores lambad request (headers, query parameters, url parameters...)
- [res](#res) Handle a response (json,jsonp,text,redritcs...)
+On serverless request, this 'constructor callback' will run after all [.before()](#before) and plugins have ran.
+ [req](#req-object) Stores lambad request (headers, query parameters, url parameters...)
+ [res](#res-object) Handle a response (json,jsonp,text,redritcs...)
 
 ## before
 ```javascript
-reqRes.before((req,res,lambdaRequest)=>{
+reqRes.before((req,res,ServerlessEvent)=>{
   req.userId = 123
 })
 ```
@@ -216,7 +224,7 @@ Example
 reqRes.context({callbackWaitsForEmptyEventLoop: false})
 console.log(reqRes.context())
 ```
-supports both get and put of the lambda contex
+supports both get and put of the serverless contex
 > **Type:** Function
 > 
 > **Param 'contex':** If set, it will update the context 
@@ -228,7 +236,7 @@ supports both get and put of the lambda contex
 reqRes.event({headers: {}})
 console.log(reqRes.event())
 ```
-supports both get and put of the lambda event
+supports both get and put of the serverless event
 > **Type:** Function
 > 
 > **Param 'event':** If set, it will update the context 
@@ -241,14 +249,14 @@ var standerdHandler = (event, contex, callback)=>{
   rewReq.run(event, contex, callback)
 }
 ```
-Handles the raw lambda request
+Handles the raw serverless request
 > **Type:** Function
 > 
-> **Param 'event':**  Lambda's request event
+> **Param 'event':**  serverless's request event
 > 
-> **Param 'contex':**  Lambda's contex
+> **Param 'contex':**  serverless's contex
 > 
-> **Param 'callback':** the lambda function to output 
+> **Param 'callback':** the serverless function to output 
 > 
 > **Returns:** undefined
 
@@ -308,7 +316,7 @@ Waits for proimsie to resolve before fullfilling the response (res.json) or disp
 > 
 > **Pram 'Headers' (Optinal):** key/value object of headers to set  
 > 
-> **Returns:** lambda callback parameters
+> **Returns:** serverless callback parameters
 
 
 ## res.json(StatusCode:int, Body:Object) *OR* res.json(Body:Object)
@@ -317,11 +325,11 @@ Waits for proimsie to resolve before fullfilling the response (res.json) or disp
 
 > **Type:** Function
 > 
-> **Param 'Body':**  Return this Object to lambda
+> **Param 'Body':**  Return this Object to serverless
 > 
 > **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
 > 
-> **Returns:** lambda callback parameters
+> **Returns:** serverless callback parameters
 >
 > **NOTE**: If queryparam "cb" or "callback" is set, jsonp will be returned
 
@@ -333,7 +341,7 @@ fulfill the lamba function with a string (such as html)
 > 
 > **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
 >
-> **Param 'Body':**  Return this string to lambda
+> **Param 'Body':**  Return this string to serverless
 > 
 > **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
 
@@ -341,7 +349,7 @@ fulfill the lamba function with a string (such as html)
 
 fulfill the lamba function with an JS Thrown Error or Object;
 
-if Thrown Error is past lambda will be called back with json body
+if Thrown Error is past serverless will be called back with json body
 
 ```javascript 
 {stack:"String of Stack trace", message:"error message"} 
@@ -352,12 +360,12 @@ If an object is past it will return your custom error object as jason body
 
 > **Type:** Function
 > 
-> **Returns:** lambda callback parameters
+> **Returns:** serverless callback parameters
 
 
 
 
-**Returns:** lambda callback parameters
+**Returns:** serverless callback parameters
 
 
 ## License
