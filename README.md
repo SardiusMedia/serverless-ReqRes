@@ -299,7 +299,7 @@ Waits for proimsie to resolve before fullfilling the response (res.json) or disp
 
 ## res.jsonp(StatusCode:int, Body:Object, callback:string)
 
-### OR res.json(StatusCode:int, Body:Object, callback:string)
+### OR res.jsonp(Body:Object, callback:string)
 
 fulfill the lamba function with a string (such as html)
 
