@@ -19,14 +19,14 @@ const ReqRes = require('Lambda-ReqRes');
 Get the Res and Req handlers:
 
 ```javascript
-let handler = new ReqRes((req,res)=>{
+let reqRes = new ReqRes((req,res)=>{
   res.json({
     hello:"world"
   })
 })
 
 //point to this module in your serverless.yaml file
-module.exports = handler.run
+module.exports = reqRes.run
 
 ```
 
@@ -54,7 +54,7 @@ res.json({
 ```
 
 ### Handel a JS Error
-
+Returns a 400 json response with error message and stack trace 
 ```
 try{
  var1.anUndefinedVar = aNotherUndefinedVar;
@@ -62,6 +62,75 @@ try{
   res.error(e)
 }
 ```
+# reqRes Module
+Ex: ``` reqRes = new ReqRes((req,res)=>{...  ```
+## ReqRes.run(event, contex, callback)
+Handles the lambda request
+> **Type:** Function
+> 
+> **Param 'event':**  Lambda's request event
+> 
+> **Param 'contex':**  Lambda's contex
+> 
+> **Param 'callback':** the lambda function to call
+> 
+> **Returns:** currently set header object
+
+## ReqRes.context([contex]);
+supports both get and put of the lambda contex
+> **Type:** Function
+> 
+> **Param 'contex':** If set, it will update the context 
+> 
+> **Returns:** contex (if parameters are empty)
+
+## ReqRes.event([event])
+
+supports both get and put of the lambda event
+> **Type:** Function
+> 
+> **Param 'event':** If set, it will update the context 
+> 
+> **Returns:** event (if parameters are empty)
+
+## ReqRes.before(Callback|Object)
+Chainable Functions  to run (synchronously) before main function 
+> **Type:** Function
+> 
+> **Param 'Callback':** Function to run before your main function (usefull for exdending the req or res objects) 
+> 
+> **Returns:** null
+
+
+Examples
+```
+
+//
+reqRes.before({req:{
+  "server":process.env.serverName
+}})
+//The Callback Supports Promises
+.before((req,res)=>{
+  return new Promise((fulfill, reject)=>{
+    getUser(req.path.userId).then((user)=>{
+      req.user = user
+      fulfill()
+    }).catch(reject)
+  })
+})
+//add a custom response
+.before((req,res)=>{
+    res.jsonUpdateDate = (data)=>{
+      data.updatedDate = new Date.now();
+      res.json(data)
+    }
+})
+
+
+```
+
+## ReqRes.catch(Callback)
+
 
 # *Req Object*
 
@@ -69,7 +138,7 @@ try{
 
 > **Type:** Object 
 > 
-> **Returns:** a key value pares of query parameters
+> **Returns:** a key value pairs of query parameters
 
 ## req.body 
 
@@ -82,6 +151,19 @@ try{
 > **Type:** Object 
 > 
 > **Returns:** a key value pairs of url parameters
+
+## req.path 
+
+> **Type:** Object 
+> 
+> **Returns:** a key value pairs of url path parameters
+
+## req.headers 
+
+> **Type:** Object 
+> 
+> **Returns:** a key value pairs of request headers
+
 
 
 
