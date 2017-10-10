@@ -47,6 +47,8 @@ functions:
 
 **Alternatively, you can use [.before()](#before) to extend a single function**
 
+**Or, you can set an array of plugins to run when createing a new ResReq**
+
 include the plugins module
 
 ```javascript
