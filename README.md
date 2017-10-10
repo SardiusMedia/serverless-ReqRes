@@ -55,8 +55,9 @@ var ReqRes = require('serverless-req-res');
 
 create two plugins that vaildates user and sends back a 404 with a custom message
 ```javascript
-//varify user based off token
-ReqRes('plugin', (res,req, ServerlessEvent)=>{
+//varify user based off token 
+//this plugin key is "getUser"
+ReqRes('getUser', (req,res, ServerlessEvent)=>{
   return new Promise((fullfill, reject)=>{
       getUser(req.headers.token).then((user)=>{
         req.user = user
@@ -66,7 +67,7 @@ ReqRes('plugin', (res,req, ServerlessEvent)=>{
 })
 
 //create a custom response for a "specal usecase"
-ReqRes('plugin', (res,req, ServerlessEvent)=>{
+ReqRes('notFound', (req, res, ServerlessEvent)=>{
   res.notFound = (message)=>{
     if(!message) message = "404 - Not Found."
       ServerlessEvent.callback(null, {
@@ -77,7 +78,7 @@ ReqRes('plugin', (res,req, ServerlessEvent)=>{
   }
 })
 
-
+//runs all plugins
 let reqRes = new ReqRes((req,res)=>{
   //use first pugin to get req.user  
   res.send("hello! "+req.user.firstName + " it's now "+req.now )
@@ -91,6 +92,17 @@ let reqRes = new ReqRes((req,res)=>{
   //use second plugin to catch an error (first plugin rejected it's promise)
   res.notFound("User Not Found")
 })
+
+//run only notfound plugin
+let reqRes = new ReqRes((req,res)=>{
+  //use first pugin to get req.user  
+  res.notFound(" This page was not found " )
+},[
+  //this array definds what plugins to run
+  "notFound"
+])
+
+
 ```
 **NOTE:** All plugins and before()s are synchronously called
 ```javascript
@@ -195,15 +207,29 @@ try{
 [reqRes.run(rawServerlessEvent, rawServerlessContex, rawServerlessCallback)](#run) handle raw serverless function call
 
 ## Constructor
+default  (run all plugins, if set)
 ```javascript 
 var reqRes = new ReqRes(
-//the constructor 
+  //the constructor 
   (req,res,ServerlessEvent)=>{
     //send the request object to browser 
     res.json(req)
   }
 ); 
 ```
+Run a subset of plugins by keys (example is "aPluginKey")
+```javascript 
+var reqRes = new ReqRes(
+  //the constructor 
+  (req,res,ServerlessEvent)=>{
+    //send the request object to browser 
+    res.json(req)
+  },
+  /.the subset of plugins to run
+  ["aPluginKey"]
+); 
+```
+
 On serverless request, this 'constructor callback' will run after all [.before()](#before) and plugins have ran.
 
 [Req](#req-object) Stores lambad request (headers, query parameters, url parameters...)
@@ -213,9 +239,9 @@ On serverless request, this 'constructor callback' will run after all [.before()
 ## Plugin Constructor
 ```javascript 
 //fake auth plugin
-//first param is string "plugin",
+//first param is string Plugin_Key,
 //seond pram is the callback to run apon a serverless request
-ReqRes('plugin', (res,req, ServerlessEvent)=>{
+ReqRes('aPluginKey', (req, res, ServerlessEvent)=>{
   return new Promise((fullfill, reject)=>{
       getUser(req.headers.token).then((user)=>{
         req.user = user
@@ -230,7 +256,7 @@ ReqRes('plugin', (res,req, ServerlessEvent)=>{
 //note .before() will be undefined
 //.before()
 ```
-when the first parameter of ReqRes is a string "plugin" the callback will run before every request made
+when the first parameter of ReqRes is a string the callback will run before every request made
 **Note:** Plugins are not chanable and return undefined. You cannot use .before or any of the fallowing functions
 
 ## before
@@ -384,14 +410,14 @@ Handles the raw serverless request
 
 # Res Object
 
-## res.headers([headers])
+## res.headers(headerkey,headerValue) (to add header) *OR* res.headers(Object)  (to overwrite all headers set)
 
 Get and Set the headers 
 > **Type:** Function
 > 
 > **Param 'headers':**  A key/val object to set response headers.
 > 
-> **Returns:** currently set header object
+> **Returns:** hedars Object
 
 ## res.handle(Promise [, Headers])
 

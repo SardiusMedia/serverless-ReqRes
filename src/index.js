@@ -1,16 +1,39 @@
-let _resReqPlugins = [];
-let _runAllByDefualt;
+let _resReqPlugins = {};
 var _plugins = {
-    add: callback => {
-        _resReqPlugins.push(callback);
+    add: (key,callback) => {
+        if(key.toLowerCase().trim() == "plugin"){
+           key = "plugin_"+Object.keys(_resReqPlugins).length; 
+        }
+        _resReqPlugins[key] = callback;
     },
-    get: () => {
-        return _resReqPlugins;
+    get: (pluginKeys) => {
+        var pluginReturn = [];
+        var allkeys = Object.keys(_resReqPlugins)
+        
+        var returnAll = false;
+       
+        if(typeof pluginKeys == "undefined"){
+            returnAll = true;
+        }
+        else if(Array.isArray( pluginKeys) && pluginKeys[0] == "*"){
+            returnAll = true
+        }
+
+        
+        for(var i = 0; i<allkeys.length; i++){
+            var key = allkeys[i];
+            
+            if(returnAll || pluginKeys.indexOf(key)>=0){
+                pluginReturn.push(_resReqPlugins[key])
+            }
+        }
+
+        return pluginReturn;
     }
 };
 
 var _ReqRes = function _ReqRes(event, context, callback) {
-    var _headers;
+    var _headers = {};
     var update = serverlessObject => {
         event = serverlessObject.event, context = serverlessObject.context;
     };
@@ -22,16 +45,27 @@ var _ReqRes = function _ReqRes(event, context, callback) {
             statusCode = 200;
         }
 
-        if (typeof object == "object") {
+        if (typeof body == "object") {
             try {
-                object = JSON.parse(object);
+                body = JSON.parse(body);
             } catch (e) {
                 return error({ message: "halder.json was passed an unparsable string", parseError: e.message });
             }
         }
+        
+        if(!_headers['Content-Type']){
+            if(body.indexOf("<html>")>=0){
+               _headers['Content-Type'] = "text/html" 
+            }
+            else{
+                _headers['Content-Type'] = "text/plain" 
+            }
+            
+        }
 
         callback(null, {
             statusCode: statusCode,
+            headers:_headers,
             body: body
         });
     };
@@ -54,8 +88,10 @@ var _ReqRes = function _ReqRes(event, context, callback) {
         }
 
         if (!cb) {
+            _headers['Content-Type'] = 'application/json'
             send(statusCode, JSON.stringify(object));
         } else {
+            _headers['Content-Type'] = 'application/javascript'
             send(statusCode, cb + '(' + JSON.stringify(object) + ');');
         }
     };
@@ -71,14 +107,27 @@ var _ReqRes = function _ReqRes(event, context, callback) {
         }
         json(statusCode, object, cb);
     };
-    var error = err => {
+    var error = (statusCode, err) => {
+         if (typeof err == "undefined") {
+            err = statusCode;
+            statusCode = 400;
+        }
         if (err instanceof Error) {
-            json(400, { message: err.message, stack: err.stack });
+            json(statusCode, { message: err.message, stack: err.stack });
             //throw(err) 
         } else {
-            json(400, err);
+            json(statusCode, err);
         }
     };
+    
+    var setHeader = (key,val)=>{
+        if(typeof key == "object"){
+            _headers = key
+        }else if(typeof key !== "undefined" && typeof val !== "undefined"){
+            _headers[key] = val
+        }
+        return _headers
+    }
 
     var redirect = Location => {
         callback(null, {
@@ -124,24 +173,29 @@ var _ReqRes = function _ReqRes(event, context, callback) {
             json: json,
             redirect: redirect,
             error: error,
-            handle: handle
+            handle: handle,
+            headers:setHeader
         }
     };
 };
 
-module.exports = function (type, runCallback) {
-    if(typeof type == "string"){
-        _plugins.add(runCallback)
-        return
-    }
-    else{
-      runCallback = type  
-    }
-
+module.exports = function (runCallback, pluginArray) {
+   
     var _befores = [];
     var _catch = false;
     var _event = {};
     var _context = {};
+
+    //this is a plugin
+    if(typeof runCallback == "string"){
+        _plugins.add(runCallback, pluginArray)
+        return
+    }
+
+    if(typeof pluginArray == "undefined"){
+        pluginArray = ['*']
+    }
+
 
     this.run = (event, context, callback) => {
         event = Object.assign(event, _event);
@@ -153,8 +207,13 @@ module.exports = function (type, runCallback) {
             res = _ref.res,
             update = _ref.update;
 
+        if(!_catch){
+            _catch = (errors, req, res)=>{
+                res.error(errors)
+            }
+        }
         var pRomises;
-        var plugins = _plugins.get();
+        var plugins = _plugins.get(pluginArray);
         _befores = _befores.concat(plugins);
 
         if (_befores.length > 0) {
@@ -185,7 +244,6 @@ module.exports = function (type, runCallback) {
                             }], req, res, this.Lambda);
                         }
                     } else {
-
                         runCallback(req, res);
                     }
                 } else {
