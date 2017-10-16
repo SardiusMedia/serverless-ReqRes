@@ -323,7 +323,7 @@ if array is passed the plugins would run at the same time (asynchronously)
 
 ## excludePlugins
 ```javascript
-reqRes.filterPlugins("plugin1")
+reqRes.filterPlugins(["plugin1"])
 ```
 
 Don't run a subset set of plugins for this request
