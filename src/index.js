@@ -13,7 +13,52 @@ var _plugins = {
     },
     // Get array of plgins filtered by pluginKeys
     // Param: pluginKeys, String Array
-    get: (pluginKeys) => {
+    get: (pluginKeys, excludes) => {
+        //the array of plugins to return 
+        var pluginReturn = [];
+        //the names of all current plugins 
+        
+        var returnAll = false;
+        //if pluginKeys filter aray is not set send all plugins 
+        if(typeof pluginKeys == "undefined"){
+            returnAll = true;
+        }
+        //if the first item on the arry is a * then sned all plugins
+        else if(Array.isArray( pluginKeys) && pluginKeys[0] == "*"){
+            returnAll = true
+        }
+
+        if(returnAll){
+            pluginKeys = Object.keys(_resReqPlugins)
+        }
+
+        for(var i = 0; i<pluginKeys.length; i++){
+            var key = pluginKeys[i];
+            console.log("key",key)
+            if(Array.isArray(key)){
+                console.log("isArray")
+         
+                var promises = []
+                for(var j=0; j<key.length; j++){
+                    var pKey = key[j];
+                    if(excludes.indexOf(key) < 0){
+                        promises.push(_resReqPlugins[pKey])
+                    }
+                }
+                if(promises.length > 0){
+                    pluginReturn.push(promises)
+                } 
+            }
+            else if( excludes.indexOf(key) < 0) {
+                console.log(key,_resReqPlugins[key])
+                pluginReturn.push(_resReqPlugins[key])
+            }
+        }
+        console.log("plugins", pluginReturn)
+        return pluginReturn
+    },
+     get2: (pluginKeys, excludes) => {
+        console.log(excludes,"excludes")
         //the array of plugins to return 
         var pluginReturn = [];
         //the names of all current plugins 
@@ -33,12 +78,22 @@ var _plugins = {
         for(var i = 0; i<allkeys.length; i++){
             //store the plugin name
             var key = allkeys[i];
+            console.log("key",key)
+            if(Array.isArray(key)){
+                var promises = []
+                for(var j=0; j<key.length; j++){
+                    promises.push(_resReqPlugins[key])
+                }
+                pluginReturn.push(promises)
+            }
+
             //store the plugin to return if
             //we want to return all plguins OR the plugin name is in pluginsKeys array
-            if(returnAll || pluginKeys.indexOf(key)>=0){
+            else if((returnAll || pluginKeys.indexOf(key)>=0) && excludes.indexOf(key) < 0) {
                 pluginReturn.push(_resReqPlugins[key])
             }
         }
+        console.log("plugins", pluginReturn)
         //return the arrays of plugins 
         return pluginReturn;
     }
@@ -207,30 +262,31 @@ var _ReqRes = function _ReqRes(event, context, callback) {
     };
 };
 
-module.exports = function (runCallback, pluginArray) {
+module.exports = function (runCallback, plugin) {
     //array of callbacks from .befor()
     var _befores = [];
+    var _excludes = [];
     //the catch callback function
     var _catch = false;
     //serverless event object
     var _event = {};
     //serverless context object
     var _context = {};
-
+    var pluginArray = ['*']
+    var _excludes = [];
     //initialize 
+    
     
     //this is a plugin with the plugin name as a string for runCallback and pluginArray is the callback
     if(typeof runCallback == "string"){
-        _plugins.add(runCallback, pluginArray)
+        _plugins.add(runCallback, plugin)
         return
     }
-    //the plugin filter is empty so use all
-    if(typeof pluginArray == "undefined"){
-        pluginArray = ['*']
-    }
+   
 
     //serverless haderler
     this.run = (event, context, callback) => {
+        
         //save the serverless event merged with any user overwrites
         event = Object.assign(event, _event);
         //save the serverless context merged with any user overwrites
@@ -248,8 +304,9 @@ module.exports = function (runCallback, pluginArray) {
                 res.error(errors)
             }
         }
+        
         //get the array of plugins with a filter pluginArray
-        var plugins = _plugins.get(pluginArray);
+        var plugins = _plugins.get(pluginArray,_excludes);
 
         //merge the plugins into the array of befores
         _befores = plugins.concat(_befores);
@@ -305,11 +362,25 @@ module.exports = function (runCallback, pluginArray) {
                 //get the callback
                 var before = _befores[i];
                 //if the callabck is a functino
-                if (typeof before == "function") {
+                if (typeof before == "function" || Array.isArray(before)) {
                     //run the function
-                    before = before(req, res, this.Lambda);
+                    
                     //wait for the promise (or object) is returned
-                    Promise.resolve(before).then(checkFulfill).catch(error => {
+                    var request
+                  if(Array.isArray(before)){
+                        var promises = []
+                        for(var j = 0; j<before.length; j++){
+                            promises.push(before[j](req, res, this.Lambda))
+                        }
+                        request = Promise.all(promises).then((data)=>{
+                            console.log("done",data)
+                        })
+                    }
+                    else{
+                        request = Promise.resolve(before(req, res, this.Lambda))
+                    }
+                    
+                    request.then(checkFulfill).catch(error => {
                         hasErrors = true;
                         if (typeof req.ReqResErrors == "undefined") {
                             req.ReqResErrors = [];
@@ -336,8 +407,23 @@ module.exports = function (runCallback, pluginArray) {
             runCallback(req, res, Lambda, this.Lambda);
         }
     };
+
+    this.filterPlugins = pluginFilter =>{
+        pluginArray = pluginFilter;
+        return this
+    }
+
+    this.excludePlugins = excludePluginArray =>{
+        if(typeof excludePluginArray == "string"){
+            excludePluginArray = [excludePluginArray]  
+        }
+        _excludes = excludePluginArray
+        return this;
+    }
+
     //push a callback for the ResRes
     this.before = callback => {
+         
         _befores.push(callback);
         return this;
     };
@@ -357,8 +443,6 @@ module.exports = function (runCallback, pluginArray) {
         if (typeof context == "object") _context = Object.assign(_context, context);
         return _context;
     };
-
-
 
     return this;
 };

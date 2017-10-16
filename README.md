@@ -103,7 +103,7 @@ Run only notfound plugin
 let reqRes = new ReqRes((req,res)=>{
   //use first pugin to get req.user  
   res.notFound(" This page was not found " )
-},[
+}).pluginFilter([
   //this array definds what plugins to run
   "notFound"
 ])
@@ -238,18 +238,6 @@ var reqRes = new ReqRes(
   }
 ); 
 ```
-Run a subset of plugins by keys (example is "aPluginKey")
-```javascript 
-var reqRes = new ReqRes(
-  //the constructor 
-  (req,res,ServerlessEvent)=>{
-    //send the request object to browser 
-    res.json(req)
-  },
-  //the subset of plugins to run
-  ["aPluginName"] //see below for more info on plugin names
-); 
-```
 
 On serverless request, this 'constructor callback' will run after all [.before()](#before) and plugins have ran.
 
@@ -320,6 +308,32 @@ reqRes.before({req:{
 })
 ```
 
+## filterPlugins
+```javascript
+reqRes.filterPlugins("plugin1", ["plugin2", "plugin3"])
+```
+Run only a subset set of plugins names to run before main function 
+if array is passed the plugins would run at the same time (asynchronously)
+ 
+> **Type:** Function
+> 
+> **Param 'fitler array':** Plugins to run before your main function
+> 
+> **Returns:** resReq
+
+## excludePlugins
+```javascript
+reqRes.filterPlugins("plugin1")
+```
+
+Don't run a subset set of plugins for this request
+ 
+> **Type:** Function
+> 
+> **Param 'fitler array':** Plugins NOT to run before your main function
+> 
+> **Returns:** resReq
+
 ## catch
 
 ```javascript
@@ -331,6 +345,7 @@ reqRes.before((req,res)=>{
   res.error(errors)
 })
 ```
+
 returns
 ```json
 [
