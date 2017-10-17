@@ -34,9 +34,8 @@ var _plugins = {
 
         for(var i = 0; i<pluginKeys.length; i++){
             var key = pluginKeys[i];
-            console.log("key",key)
+
             if(Array.isArray(key)){
-                console.log("isArray")
          
                 var promises = []
                 for(var j=0; j<key.length; j++){
@@ -50,15 +49,12 @@ var _plugins = {
                 } 
             }
             else if( excludes.indexOf(key) < 0) {
-                console.log(key,_resReqPlugins[key])
                 pluginReturn.push(_resReqPlugins[key])
             }
         }
-        console.log("plugins", pluginReturn)
         return pluginReturn
     },
      get2: (pluginKeys, excludes) => {
-        console.log(excludes,"excludes")
         //the array of plugins to return 
         var pluginReturn = [];
         //the names of all current plugins 
@@ -78,7 +74,6 @@ var _plugins = {
         for(var i = 0; i<allkeys.length; i++){
             //store the plugin name
             var key = allkeys[i];
-            console.log("key",key)
             if(Array.isArray(key)){
                 var promises = []
                 for(var j=0; j<key.length; j++){
@@ -93,7 +88,6 @@ var _plugins = {
                 pluginReturn.push(_resReqPlugins[key])
             }
         }
-        console.log("plugins", pluginReturn)
         //return the arrays of plugins 
         return pluginReturn;
     }
@@ -372,9 +366,7 @@ module.exports = function (runCallback, plugin) {
                         for(var j = 0; j<before.length; j++){
                             promises.push(before[j](req, res, this.Lambda))
                         }
-                        request = Promise.all(promises).then((data)=>{
-                            console.log("done",data)
-                        })
+                        request = Promise.all(promises)
                     }
                     else{
                         request = Promise.resolve(before(req, res, this.Lambda))
