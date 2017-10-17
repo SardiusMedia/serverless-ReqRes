@@ -103,7 +103,7 @@ Run only notfound plugin
 let reqRes = new ReqRes((req,res)=>{
   //use first pugin to get req.user  
   res.notFound(" This page was not found " )
-}).pluginFilter([
+}).filterPlugin([
   //this array definds what plugins to run
   "notFound"
 ])
