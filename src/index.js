@@ -272,7 +272,7 @@ module.exports = function (runCallback, plugin) {
     var _Serverless = {};
 
     var _corsUrl = false
-    
+    var _preflight = "POST, PUT, GET, OPTIONS, DELETE, PATCH, COPY, HEAD, LINK, UNLINK, PURGE, LOCK, PROPFIND, VIEW"
     //this is a plugin with the plugin name as a string for runCallback and pluginArray is the callback
     if(typeof runCallback == "string"){
         _plugins.add(runCallback, plugin)
@@ -298,8 +298,8 @@ module.exports = function (runCallback, plugin) {
 
         if(_corsUrl){
             res.headers( {
-                "Access-Control-Allow-Origin": _corsUrl,
-                "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE"
+                "Access-Control-Allow-Origin":  _corsUrl,
+                "Access-Control-Allow-Methods": _preflight
             })
         }
 
@@ -419,12 +419,15 @@ module.exports = function (runCallback, plugin) {
             }
         }
     };
-    this.cors = url =>{
+    this.cors = (url, preflightArray) =>{
         if(typeof url == "boolean" && url){
             _corsUrl = "*"                 
         }
         else{
             _corsUrl = url
+        }
+        if(preflightArray){
+            _preflight = preflightArray.join(", ").toUpperCase()
         }
         return this;
     }
