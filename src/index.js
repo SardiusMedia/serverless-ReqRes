@@ -1,3 +1,5 @@
+
+
 let _resReqPlugins = {};
 //plugins handles storing and gettings all fuctions callbacks 
 var _plugins = {
@@ -53,57 +55,31 @@ var _plugins = {
             }
         }
         return pluginReturn
-    },
-     get2: (pluginKeys, excludes) => {
-        //the array of plugins to return 
-        var pluginReturn = [];
-        //the names of all current plugins 
-        var allkeys = Object.keys(_resReqPlugins)
-        //should return all plugins
-        var returnAll = false;
-        //if pluginKeys filter aray is not set send all plugins 
-        if(typeof pluginKeys == "undefined"){
-            returnAll = true;
-        }
-        //if the first item on the arry is a * then sned all plugins
-        else if(Array.isArray( pluginKeys) && pluginKeys[0] == "*"){
-            returnAll = true
-        }
-
-        //for each current plugin 
-        for(var i = 0; i<allkeys.length; i++){
-            //store the plugin name
-            var key = allkeys[i];
-            if(Array.isArray(key)){
-                var promises = []
-                for(var j=0; j<key.length; j++){
-                    promises.push(_resReqPlugins[key])
-                }
-                pluginReturn.push(promises)
-            }
-
-            //store the plugin to return if
-            //we want to return all plguins OR the plugin name is in pluginsKeys array
-            else if((returnAll || pluginKeys.indexOf(key)>=0) && excludes.indexOf(key) < 0) {
-                pluginReturn.push(_resReqPlugins[key])
-            }
-        }
-        //return the arrays of plugins 
-        return pluginReturn;
     }
 };
 //Private CLASS _ReqRes
 //Hanles all Req and Res defulat functions uses when ReqRes.run 
 //Prams event, context, and callback are the serverless event, context and callback 
-var _ReqRes = function _ReqRes(event, context, callback) {
+var _ReqRes = function _ReqRes(event, context, lcallback) {
     var _headers = {};
+    var _debugmode = false;
+    var sent = false;
     var update = serverlessObject => {
         event = serverlessObject.event, context = serverlessObject.context;
     };
+    
+    var callback = (param1, param2)=>{
+        if(sent){
+            return
+        }
+        sent = true;
+        lcallback(param1,param2)
+    }
 
     //Handels all defualt res handlers 
     //send text to browser (run serverless callback)
     var send = (statusCode, body) => {
+     
         //if status code was not set, set the defualt to 2--
         if (typeof body == "undefined") {
             body = statusCode;
@@ -125,14 +101,29 @@ var _ReqRes = function _ReqRes(event, context, callback) {
             else{
                 _headers['Content-Type'] = "text/plain" 
             }
-            
         }
-        //callback to serveless
-        callback(null, {
-            statusCode: statusCode,
-            headers:_headers,
-            body: body
-        });
+
+        if(_debugmode){
+              //callback to serveless
+            callback(null, {
+                statusCode: statusCode,
+                headers:_headers,
+                body: JSON.stringify( {
+                    statusCode: statusCode,
+                    headers:_headers,
+                    body: body
+                })
+            });
+        }
+        else{
+            callback(null, {
+                statusCode: statusCode,
+                headers:_headers,
+                body: body
+            });
+        }
+      
+
     };
 
     //send json
@@ -206,6 +197,10 @@ var _ReqRes = function _ReqRes(event, context, callback) {
     }
     //simple redirect
     var redirect = Location => {
+        if(sent){
+            return
+        }
+        sent = true;
         callback(null, {
             statusCode: 301,
             headers: {
@@ -222,6 +217,10 @@ var _ReqRes = function _ReqRes(event, context, callback) {
             error(e);
         }
     };
+
+    var debugMode = ()=>{
+        _debugmode = true
+    }
 
     //REQ variables
     var query = event.queryStringParameters || {};
@@ -251,7 +250,8 @@ var _ReqRes = function _ReqRes(event, context, callback) {
             redirect: redirect,
             error: error,
             handle: handle,
-            headers:setHeader
+            headers:setHeader,
+            debug : debugMode
         }
     };
 };
@@ -269,14 +269,17 @@ module.exports = function (runCallback, plugin) {
     var pluginArray = ['*']
     var _excludes = [];
     //initialize 
-    
+    var _Serverless = {};
+
+    var _corsUrl = false
     
     //this is a plugin with the plugin name as a string for runCallback and pluginArray is the callback
     if(typeof runCallback == "string"){
         _plugins.add(runCallback, plugin)
         return
     }
-   
+
+    
 
     //serverless haderler
     this.run = (event, context, callback) => {
@@ -286,12 +289,20 @@ module.exports = function (runCallback, plugin) {
         //save the serverless context merged with any user overwrites
         context = Object.assign(context, _context);
         //store the Serverless Object (to be passed to this ReqRes)
-        this.Lambda = { event: event, context: context, callback: callback };
+        _Serverless = { event: event, context: context, callback: callback };
         //Create a new ReqRes Class to be called by the suer
         var _ref = new _ReqRes(event, context, callback),
             req = _ref.req,
             res = _ref.res,
             update = _ref.update;
+
+        if(_corsUrl){
+            res.headers( {
+                "Access-Control-Allow-Origin": _corsUrl,
+                "Access-Control-Allow-Methods": "POST, GET, OPTIONS, DELETE"
+            })
+        }
+
         //set a defulat catch if user has not passed one
         if(!_catch){
             _catch = (errors, req, res)=>{
@@ -299,11 +310,11 @@ module.exports = function (runCallback, plugin) {
             }
         }
         
-        //get the array of plugins with a filter pluginArray
+      /*  //get the array of plugins with a filter pluginArray
         var plugins = _plugins.get(pluginArray,_excludes);
 
         //merge the plugins into the array of befores
-        _befores = plugins.concat(_befores);
+        _befores = plugins.concat(_befores);*/
         //loop though each .before and plugins
         if (_befores.length > 0) {
             //loop index
@@ -323,28 +334,33 @@ module.exports = function (runCallback, plugin) {
                 //add one to loop index
                 i++;
                 //update the Serveless Object
-                update(this.Lambda);
+                update(_Serverless);
                 //if all plugins and befores have ran
-                if (i == len) {
+                if (i == len || hasErrors) {
                     //if any errors found and there is a catch function
                     if (hasErrors && _catch) {
                         //call the catch funcion
-                        _catch(req.ReqResErrors, req, res, this.Lambda);
+                        _catch(req.ReqResErrors, req, res, _Serverless);
                     } else if (_catch) {
                         //if there is a catch function run the main reqRes in a try/catch
                         try {
                             //call the main function
-                            runCallback(req, res, this.Lambda);
+                            runCallback(req, res, _Serverless);
                         } catch (e) {
                             //callback to the .catch()
                             _catch([{
                                 message: e.message,
                                 stack: e.stack
-                            }], req, res, this.Lambda);
+                            }], req, res, _Serverless);
                         }
                     } else {
                         //run the callback and we dont care what happens
-                        runCallback(req, res);
+                        try{
+                           runCallback(req, res); 
+                       }catch(e){
+                        res.error(e)
+                       }
+                        
                     }
                 } else {
                     //loop hassent finished yet call next callback
@@ -364,12 +380,12 @@ module.exports = function (runCallback, plugin) {
                   if(Array.isArray(before)){
                         var promises = []
                         for(var j = 0; j<before.length; j++){
-                            promises.push(before[j](req, res, this.Lambda))
+                            promises.push(before[j](req, res, _Serverless))
                         }
                         request = Promise.all(promises)
                     }
                     else{
-                        request = Promise.resolve(before(req, res, this.Lambda))
+                        request = Promise.resolve(before(req, res, _Serverless))
                     }
                     
                     request.then(checkFulfill).catch(error => {
@@ -388,18 +404,30 @@ module.exports = function (runCallback, plugin) {
                     });
                 } else {
                     //.before() was an object so meger into req,res obejcts
-                    combine(before.req, before.res, this.Lambda);
+                    combine(before.req, before.res, _Serverless);
                     checkFulfill();
                 }
             };
             //start the loop
             next();
         } else {
-            //no .befores or plugins
-            runCallback(req, res, Lambda, this.Lambda);
+            try {
+                //no .befores or plugins
+                runCallback(req, res, _Serverless);
+            }catch(e){
+               res.error(e)
+            }
         }
     };
-
+    this.cors = url =>{
+        if(typeof url == "boolean" && url){
+            _corsUrl = "*"                 
+        }
+        else{
+            _corsUrl = url
+        }
+        return this;
+    }
     this.filterPlugins = pluginFilter =>{
         pluginArray = pluginFilter;
         return this
@@ -412,7 +440,12 @@ module.exports = function (runCallback, plugin) {
         _excludes = excludePluginArray
         return this;
     }
-
+    //push a callback for the ResRes
+    this.plugins = callbacks => {
+         
+        _befores = _befores.concat(callbacks);
+        return this;
+    };
     //push a callback for the ResRes
     this.before = callback => {
          
@@ -427,8 +460,12 @@ module.exports = function (runCallback, plugin) {
     //get/set serverless event object
     this.event = event => {
         if (typeof event == "object") _event = Object.assign(_event, event);
-
         return _event;
+    };
+
+    this.debug = ()=> {
+        _debugMode = true
+        return this;
     };
     //get/set serverless context 
     this.context = context => {
