@@ -120,12 +120,14 @@ var handler = new ReqRes((req, res,rawServerlessEvent)=>{
     stack:req.stack
   });
 })
-//Pass Object to add to req, or res
+//Pass Object to add to req, (or res) objects
 .before({
 	req:{
 		stack:[]
 	}
 })
+//when object without req or res is passed then it will add all attributes to the req object
+.before({stack:[]}) //same as above
 //Passing a function that returns a Proimise will wait unfil it is resolved before running any other "before"
 .before((req,res,rawServerlessEvent)=>{
 	return new Promise((fulfill,reject)=>{
