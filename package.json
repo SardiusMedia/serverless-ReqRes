@@ -1,7 +1,7 @@
 {
   "name": "serverless-req-res",
   "description": "ReqRes is a lightweight and dependency free \"Express.js like\" Request and Response handler (with plug-in support) for Serverless Lambda functions",
-  "version": "0.3.7",
+  "version": "0.3.8",
   "main": "lib/index.js",
   "author": "Sardius Media",
   "repository": "sardiusmedia/serverless-ReqRes",

@@ -404,7 +404,7 @@ module.exports = function (runCallback, plugin) {
                     });
                 } else {
                     //.before() was an object so meger into req,res obejcts
-                    if(typeof before.req == "object" || typeof before.res == "object"){
+                    if(typeof before == "object" && (typeof before.req == "object" || typeof before.res == "object")){
                         combine(before.req, before.res, _Serverless);
                     }
                     else if(typeof before == "object"){
