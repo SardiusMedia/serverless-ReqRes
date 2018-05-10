@@ -29,7 +29,7 @@ var reqRes = new ReqRes((req,res,rawServerlessEvent)=>{
 
 
 module.exports = {
-	get:reqRes.run //NOTE! .run is passed as the handler!!!
+  get:reqRes.run //NOTE! .run is passed as the handler!!!
 }
 ```
 **NOTE!** you must pass **.run** in create your request handler or as the last call on your reqRes object you created
@@ -97,7 +97,7 @@ let reqRes = new ReqRes((req,res)=>{
   req.now = new Date.now()
 })
 .plugins([
-	authUserPlugin,
+  authUserPlugin,
     handelNotFoundPlugin
 ])
 //catch a plugin rejectcion
@@ -122,26 +122,26 @@ var handler = new ReqRes((req, res,rawServerlessEvent)=>{
 })
 //Pass Object to add to req, (or res) objects
 .before({
-	req:{
-		stack:[]
-	}
+  req:{
+    stack:[]
+  }
 })
 //when object without req or res is passed then it will add all attributes to the req object
 .before({stack:[]}) //same as above
 //Passing a function that returns a Proimise will wait unfil it is resolved before running any other "before"
 .before((req,res,rawServerlessEvent)=>{
-	return new Promise((fulfill,reject)=>{
-		setTimeout(()=>{
-			req.stack.push("First")
-			fulfill()
-		},1000)
-	})
+  return new Promise((fulfill,reject)=>{
+    setTimeout(()=>{
+      req.stack.push("First")
+      fulfill()
+    },1000)
+  })
 })
 .before((req,res,lambda)=>{
-	req.stack.push("Second")
+  req.stack.push("Second")
 })
 .catch((errors, req,res, lambda)=>{
-	res.error(errors)
+  res.error(errors)
 })
 ```
 Returns
@@ -450,16 +450,44 @@ Get and Set the headers
 > 
 > **Returns:** hedars Object
 
-## res.handle(Promise [, Headers])
 
-Waits for proimsie to resolve before fullfilling the response (res.json) or displaying error (res.error) 
+## res.end()
+
+When Called this will stop any future before()s, plugins, or the main callback
+
+If data has not been send yet (ex: res.send, res.json ect. (defined below) has not been called) A 200 response will be passed with an empty body
+
+> > **Type:** Function
+> 
+> **Param 'headers':**  A key/val object to set response headers.
+> 
+> **Returns:** undefined
+
+**NOTE:** All function below return end() for method chaining if desired 
+
+## res.send(StatusCode:int, Body:String) *OR* res.send(Body:String)
+
+**fulfill the lamba function with a String/text response** 
+
 > **Type:** Function
 > 
-> **Param 'Promise**':  A JS Promise
+> **Param 'Body':**  Return this String to serverless
 > 
-> **Pram 'Headers' (Optinal):** key/value object of headers to set  
+> **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
 > 
-> **Returns:** serverless callback parameters
+> **Returns:** Object with function end() to stop any future before()s, plugins, or the main callback
+
+
+## res.redirect(URL:String)
+
+**fulfill the lamba function with a the location header set to the url you pass object** 
+
+> **Type:** Function
+> 
+> **Param 'URL':**  Return this url to serverless to redirect to it
+> 
+> **Returns:** Object with function end() to stop any future before()s, plugins, or the main callback
+>
 
 
 ## res.json(StatusCode:int, Body:Object) *OR* res.json(Body:Object)
@@ -472,7 +500,7 @@ Waits for proimsie to resolve before fullfilling the response (res.json) or disp
 > 
 > **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
 > 
-> **Returns:** serverless callback parameters
+> **Returns:** Object with function end() to stop any future before()s, plugins, or the main callback
 >
 > **NOTE**: If queryparam "cb" or "callback" is set, jsonp will be returned
 
@@ -486,7 +514,9 @@ fulfill the lamba function with a string (such as html)
 >
 > **Param 'Body':**  Return this string to serverless
 > 
-> **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
+> **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200
+>
+> **Returns:** Object with function end() to stop any future before()s, plugins, or the main callback
 
 ## res.error(Javacript Error) *OR* res.error(Object)
 
@@ -503,14 +533,55 @@ If an object is past it will return your custom error object as jason body
 
 > **Type:** Function
 > 
-> **Returns:** serverless callback parameters
+> **Returns:** Object with function end() to stop any future before()s, plugins, or the main callback
 
+
+## res.handle(Promise [, Headers])
+
+Waits for proimsie to resolve before fullfilling the response (res.json) or displaying error (res.error) 
+> **Type:** Function
+> 
+> **Param 'Promise**':  A JS Promise
+> 
+> **Pram 'Headers' (Optinal):** key/value object of headers to set  
+> 
+> **Returns:** serverless callback parameters
 
 
 
 **Returns:** serverless callback parameters
 
+# Keeping Lambda Hot with Schedule Input "ReqRes_KEEP_HOT"
 
+To keep your Lambda instance hot and reduce slow cold startups you can add ReqRes_KEEP_HOT:true as in input in a schedule for your function
+
+when ReqRes_KEEP_HOT is true ReqRes will not run any of your code but will exit as soon as possible with a 200 json response of:
+
+```
+{ 
+     keepingHot:true, 
+     message:"ReqRes plugin stopped before running any before()s plugins or the main handler, as 'ReqRes_KEEP_HOT' was true for this sechduled request" 
+}
+         
+```
+
+Example of using ReqRes_KEEP_HOT in a schedule
+```
+functions:
+  getExample:
+    handler: src/handler.get
+    description: an example of useing ReqRes
+    events:
+      - http:
+          method: GET
+          path: getExample
+   - schedule:
+          name: 'REQ_RES_KEEP_HOT_EXAMPLE'
+          rate: rate(15 minutes)
+          enabled: true
+          input:
+            ReqRes_KEEP_HOT: true
+```
 ## License
 
 MIT

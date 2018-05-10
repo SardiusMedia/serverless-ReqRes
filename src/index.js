@@ -64,6 +64,22 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
     var _headers = {};
     var _debugmode = false;
     var sent = false;
+    var ended = false;
+    var wasSent = ()=>{
+        return sent
+    }
+
+    var end = () =>{
+        if(!sent){
+            send("")
+        }
+        ended = true;
+    }
+
+    var wasEnded = () =>{
+        return ended
+    }
+
     var update = serverlessObject => {
         event = serverlessObject.event, context = serverlessObject.context;
     };
@@ -122,7 +138,8 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
                 body: body
             });
         }
-      
+        
+        return {end:end}
 
     };
 
@@ -146,10 +163,10 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
 
         if (!cb) {
             _headers['Content-Type'] = 'application/json'
-            send(statusCode, JSON.stringify(object));
+            return send(statusCode, JSON.stringify(object));
         } else {
             _headers['Content-Type'] = 'application/javascript'
-            send(statusCode, cb + '(' + JSON.stringify(object) + ');');
+            return send(statusCode, cb + '(' + JSON.stringify(object) + ');');
         }
     };
     //send JSONP
@@ -168,7 +185,7 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
             cb = object;
         }
         //call json with callback 
-        json(statusCode, object, cb);
+        return json(statusCode, object, cb);
     };
     //handle a JS error
     var error = (statusCode, err) => {
@@ -179,11 +196,11 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
         }
         // try to parse and send js error
         if (err instanceof Error) {
-            json(statusCode, { message: err.message, stack: err.stack }); 
+            return json(statusCode, { message: err.message, stack: err.stack }); 
         } 
         // send the error as normal
         else {
-            json(statusCode, err);
+            return json(statusCode, err);
         }
     };
     
@@ -200,7 +217,6 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
         if(sent){
             return
         }
-        sent = true;
         callback(null, {
             statusCode: 301,
             headers: {
@@ -208,6 +224,7 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
             },
             body: ''
         });
+        return {end:end}
     };
     //handle a promise and run res.json or res.error
     var handle = aProimse => {
@@ -221,7 +238,7 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
     var debugMode = ()=>{
         _debugmode = true
     }
-
+    
     //REQ variables
     var query = event.queryStringParameters || {};
     var body = "";
@@ -238,6 +255,8 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
     //return the private ReqRes class (to be used in module.exports Class)
     return {
         update: update,
+        wasSent:wasSent,
+        wasEnded:wasEnded,
         req: {
             query: query,
             body: body,
@@ -251,7 +270,8 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
             error: error,
             handle: handle,
             headers:setHeader,
-            debug : debugMode
+            debug : debugMode,
+            end:end
         }
     };
 };
@@ -270,7 +290,7 @@ module.exports = function (runCallback, plugin) {
     var _excludes = [];
     //initialize 
     var _Serverless = {};
-
+    var _end = false;
     var _corsUrl = false
     var _preflight = "POST, PUT, GET, OPTIONS, DELETE, PATCH, COPY, HEAD, LINK, UNLINK, PURGE, LOCK, PROPFIND, VIEW"
     //this is a plugin with the plugin name as a string for runCallback and pluginArray is the callback
@@ -302,11 +322,18 @@ module.exports = function (runCallback, plugin) {
                 "Access-Control-Allow-Methods": _preflight
             })
         }
+      
+        if(typeof event["ReqRes_KEEP_HOT"] == "boolean" && event["ReqRes_KEEP_HOT"]){
+            var message = { keepingHot:true, message:"ReqRes plugin stopped before running any before()s plugins or the main handler, as 'ReqRes_KEEP_HOT' was true for this sechduled request" }
+            console.log(message)
+            res.json( message ).end();
+            return
+        }
 
         //set a defulat catch if user has not passed one
         if(!_catch){
             _catch = (errors, req, res)=>{
-                res.error(errors)
+                res.error(errors).end()
             }
         }
         
@@ -331,6 +358,10 @@ module.exports = function (runCallback, plugin) {
 
             //fulfill this loop if loop has ended
             var checkFulfill = () => {
+                //break loop because a before sent a response
+                if(_ref.wasEnded()){
+                    return
+                }
                 //add one to loop index
                 i++;
                 //update the Serveless Object
@@ -369,6 +400,11 @@ module.exports = function (runCallback, plugin) {
             };
 
             var next = () => {
+            
+                if(_ref.wasEnded()){
+                    return
+                }
+
                 //get the callback
                 var before = _befores[i];
                 //if the callabck is a functino
@@ -400,6 +436,7 @@ module.exports = function (runCallback, plugin) {
                             req.ReqResErrors.push(error);
                         }
                         //handled next function/ end of loop
+                        
                         checkFulfill();
                     });
                 } else {
