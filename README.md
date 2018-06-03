@@ -49,7 +49,7 @@ functions:
           path: getExample
 ```
 This reqRes will call the lambda callback as
-```json
+```javascript
 callback(null,{
 	statusCode:200,
 	headers:{
