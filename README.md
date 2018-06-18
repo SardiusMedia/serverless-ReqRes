@@ -339,17 +339,18 @@ Global plugins will run  before any befores and your main ReqRes function. The s
 Please review [ReqRes Global Plugins](#reqres-global-plugins) for best practice for using global plugins in larger code bases.
 
 #### Register a Global Function
+**reqRes("plugin", {pluginName:String}, {plugin:Function})**
 
 A Simple plugin:
 ```javascript
-reqRes("pluginName", (req,res,rawServerlessEvent)=>{
+reqRes("plugin","pluginName", (req,res,rawServerlessEvent)=>{
 	req.works = true
 })
 ```
 
 A async plugin:
 ```javascript
-reqRes("plugin1", (req,res,rawServerlessEvent)=>{
+reqRes("plugin","plugin1", (req,res,rawServerlessEvent)=>{
 	return new Promise((fulfill,reject)=>{
     	req.works = true;
         fulfill()
@@ -360,7 +361,7 @@ reqRes("plugin1", (req,res,rawServerlessEvent)=>{
 A Promse.all async plugin
 
 ```javascript
-reqRes("plugin2",
+reqRes("plugin", plugin2",
 	[
       //note the timeout
       (req,res,rawServerlessEvent)=>{
@@ -378,7 +379,7 @@ reqRes("plugin2",
 //note after promse.all req.stack will be "12"
 ```
 
-Running a ReqRes function will result in both plugins running automaticly in the order the where defined and with waterfall support.
+Running a reqRes function will result in both plugins running automatically in the order the where defined and with waterfall support.
 ```javascript
 reqRes((req,res)=>{
 	//sends {works:true} (req.stack is undefined as it was excluded)
@@ -409,6 +410,43 @@ reqRes((req,res)=>{
 Returns: ``` {stack:"12"} ```
 Note that req.works (set in plugin1) is undefined as it was excluded.
 
+#### Filtering Global Plugins Per ReqRes request By defining Sub-Sets
+Defining subsets of global plugins allows you to define a set of global plugins that may be uses in many different handlers
+
+**reqRes("plugin.subset", {pluginSetName:String}, {plugin:Function})**
+ 
+```javascript
+//Define Some Plugins
+reqRes("plugin","p1",(req)=>{req.p1 = true})
+reqRes("plugin","p2",(req)=>{req.p2 = true})
+reqRes("plugin","p3",(req)=>{req.p3 = true})
+//define the subset
+reqRes("plugin.subset","pSet1",["p1", "p2"])
+
+let handler = reqRes((req,res)=>{
+	res.json(req)
+})
+//pass the plugin subset name as a string into the plugins function
+.plugins("pSet1")
+.run
+
+```
+
+*returns*
+```
+{
+	p1:true,
+    p2:true
+}
+```
+If ```.plugins("pSet1")``` was not called, all global plugins would run and the the data would be 
+```
+{
+	p1:true,
+    p2:true,
+    p3:true
+}
+```
 
 
 ## ServerlessEvent
@@ -426,11 +464,15 @@ In examples shown with 'rawServerlessEvent' ([constructor](#constructor), [befor
 
 [ReqRes(Callback)](#constructor) Your main function to get access to res and req objects
 
-[ReqRes(String, Callback)](#global-plugins) Register A global plugin
+[ReqRes("plugin", String, Callback)](#global-plugins) Register A global plugin
+
+[ReqRes("plugin.subset", Callback)](#global-plugins) Register A global plugin Sub Set Filter
 
 [ReqRes.plugins(ARRAY(Callback|Object))](#plugin-constructor) Run Plugin functions passed as Object {req,res} or functions to run before the main callback.
 
-[ReqRes.plugins(ARRAY(String:GlobalPluginName))](#plugin-constructor) Filter to include only global functions of global functions with the same name (unknown plugins will be ignored and will not throw an error)
+[ReqRes.plugins(ARRAY(GlobalPluginName:String))](#plugin-constructor) Filter to include only global functions of global functions with the same name (unknown plugins will be ignored and will not throw an error)
+
+[ReqRes.plugins(GlobalPluginSubSetName:String))](#plugin-constructor) Filter to include only global functions that you defined globally
 
 [reqRes.before(Callback|Object)](#before) runs a callback before main function
 
@@ -495,7 +537,7 @@ Global plugins will run first (in order they where created) on every request, un
 //fake auth plugin
 //first param is string name of your plugin,
 //second param is the callback to run apon a ReqRes request
-reqRes("fakeAuth", (req, res, rawServerlessEvent)=>{
+reqRes("plugin", "fakeAuth", (req, res, rawServerlessEvent)=>{
   return new Promise((fullfill, reject)=>{
       getUser(req.headers.token).then((user)=>{
         req.user = user

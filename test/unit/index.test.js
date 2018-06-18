@@ -1,5 +1,5 @@
 let assert = require( 'chai' ).assert;
-let ReqRes = require( "./../../src/indexNew.js" )
+let ReqRes = require( "./../../src/index.js" )
 
 let fakeRequest = (cb)=>{
   return new Promise((fulfill, reject)=>{
@@ -615,7 +615,7 @@ describe('Plugins (Method Chained)', function(){
 
 describe('Plugins (Global)', function(){
   describe('Register Plugin', function () {
-    ReqRes("test",(req,res)=>{
+    ReqRes("plugin","test",(req,res)=>{
       req.global ='works'
     })
     var reqRes = ReqRes((req, res)=>{
@@ -649,7 +649,7 @@ describe('Plugins (Global)', function(){
 
   describe('Async Plugins Config', function () {
     ReqRes({
-    plugins:{
+      plugins:{
         one:(req,res,rawServerlessEvent)=>{
           req.stack = []
           return new Promise((fulfill,reject)=>{
@@ -682,6 +682,9 @@ describe('Plugins (Global)', function(){
         }
       }
     })
+    
+    ReqRes("plugin.subset","test",["one", "two"])
+
     var reqRes = ReqRes((req, res)=>{
       req.stack.push("Finally")
       res.send(  req.stack.join(',') )
@@ -705,6 +708,18 @@ describe('Plugins (Global)', function(){
     });
   })
 
+  describe('Async Filter Global Plugins by Sub-Set', function () {
+    var reqRes = ReqRes((req, res)=>{
+      req.stack.push("Finally")
+      res.send(  req.stack.join(',') )
+    }).plugins("test");
+
+    it('Should Return Correct Stack Array', async () => {
+      var request = await fakeRequest(reqRes.run)
+      assert.equal(request.body, "First,Second,Third,Finally");
+    });
+  })
+
   describe('Async Filter Global Plugins by Excludes ', function () {
     var reqRes = ReqRes((req, res)=>{
       req.stack.push("Finally")
@@ -717,7 +732,7 @@ describe('Plugins (Global)', function(){
     });
   })
 
-  describe('Async Filter Global Plugins by Includes (After Exculdes ran)', function () {
+  describe('Async Filter Global Plugins by Includes (After excludes ran)', function () {
     var reqRes = ReqRes((req, res)=>{
       req.stack.push("Finally")
       res.send(  req.stack.join(',') )

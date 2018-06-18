@@ -1,64 +1,11 @@
-
-
-let _resReqPlugins = {};
-//plugins handles storing and gettings all fuctions callbacks
-var _plugins = {
-    // Function add
-        //register a plugin
-        // param key, String: the name of this plugin
-        // param callback, Function,
-    add: (key,callback) => {
-        if(key.toLowerCase().trim() == "plugin"){
-           key = "plugin_"+Object.keys(_resReqPlugins).length;
-        }
-        _resReqPlugins[key] = callback;
-    },
-    // Get array of plgins filtered by pluginKeys
-    // Param: pluginKeys, String Array
-    get: (pluginKeys, excludes) => {
-        //the array of plugins to return
-        var pluginReturn = [];
-        //the names of all current plugins
-
-        var returnAll = false;
-        //if pluginKeys filter aray is not set send all plugins
-        if(typeof pluginKeys == "undefined"){
-            returnAll = true;
-        }
-        //if the first item on the arry is a * then sned all plugins
-        else if(Array.isArray( pluginKeys) && pluginKeys[0] == "*"){
-            returnAll = true
-        }
-
-        if(returnAll){
-            pluginKeys = Object.keys(_resReqPlugins)
-        }
-
-        for(var i = 0; i<pluginKeys.length; i++){
-            var key = pluginKeys[i];
-
-            if(Array.isArray(key)){
-
-                var promises = []
-                for(var j=0; j<key.length; j++){
-                    var pKey = key[j];
-                    if(excludes.indexOf(key) < 0){
-                        promises.push(_resReqPlugins[pKey])
-                    }
-                }
-                if(promises.length > 0){
-                    pluginReturn.push(promises)
-                }
-            }
-            else if( excludes.indexOf(key) < 0) {
-                pluginReturn.push(_resReqPlugins[key])
-            }
-        }
-        return pluginReturn
-    }
-};
+/*
+  Created by: Sardius Media ( https://Sardius.Media  )
+  Source Repo: https://github.com/SardiusMedia/serverless-ReqRes
+  License:MIT
+  Please contact us if you are interested in contributions at mike@Sardius.Media
+*/
 //Private CLASS _ReqRes
-//Hanles all Req and Res defulat functions uses when ReqRes.run
+//Handles all Req and Res default functions uses when ReqRes.run
 //Prams event, context, and callback are the serverless event, context and callback
 var _ReqRes = function _ReqRes(event, context, lcallback) {
     var _headers = {};
@@ -92,22 +39,22 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
         lcallback(param1,param2)
     }
 
-    //Handels all defualt res handlers
+    //Handles all default res handlers
     //send text to browser (run serverless callback)
     var send = (statusCode, body) => {
 
-        //if status code was not set, set the defualt to 2--
+        //if status code was not set, set the default to 2--
         if (typeof body == "undefined") {
             body = statusCode;
             statusCode = 200;
         }
-        //if the body is a js obejct convert to json string
+        //if the body is a js object convert to json string
         if (typeof body == "object") {
             try {
                 body = JSON.parse(body);
             } catch (e) {
                 return error({
-                  message: "halder.json was passed an unparsable string",
+                  message: "handler .json was passed an unparsable string",
                   parseError: e.message
                 });
             }
@@ -175,13 +122,13 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
     //send JSONP
     var jsonp = (statusCode, object, cb) => {
         //if status code and callback where not defined
-        //set defualts
+        //set defaults
         if (typeof object == "undefined" && typeof statusCode != "undefined") {
             object = statusCode;
             statusCode = 200;
             cb = "callback";
         }
-        //if status code was not set se tdfault satus code
+        //if status code was not set set default status code
         else if (typeof object == "string" && typeof statusCode != "undefined") {
             object = statusCode;
             statusCode = 200;
@@ -192,7 +139,7 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
     };
     //handle a JS error
     var error = (statusCode, err) => {
-        //set defualt status code (if not set)
+        //set default status code (if not set)
          if (typeof err == "undefined") {
             err = statusCode;
             statusCode = 400;
@@ -284,8 +231,9 @@ let ReqResHandler = function (config, runCallback) {
     //array of callbacks from .befor()
     var _befores = [];
     var _excludes = [];
-
     var _defaultPlugins = Object.assign({},config.plugins)
+    var _pluginSets =  Object.assign({},config.pluginSets);
+
     var _useDefaultPlugins = true;
     //the catch callback function
     var _catch = false;
@@ -296,13 +244,14 @@ let ReqResHandler = function (config, runCallback) {
     var _context = {};
     var pluginArray = ['*']
     var _excludes = [];
+    
     //initialize
     var _Serverless = {};
     var _end = false;
     var _corsUrl = false
     var _preflight = "POST, PUT, GET, OPTIONS, DELETE, PATCH, COPY, HEAD, LINK, UNLINK, PURGE, LOCK, PROPFIND, VIEW"
 
-    //serverless haderler
+    //serverless handler
     this.run = (event, context, callback) => {
 
         //save the serverless event merged with any user overwrites
@@ -337,11 +286,11 @@ let ReqResHandler = function (config, runCallback) {
         //set a defulat catch if user has not passed one
         function sendCatch(error){
             if(!_catch){
-              res.error(error)
+              res.error(error);
             }
             else{
               _catch(error, req, res)
-              res.end()
+              res.end();
             }
         }
 
@@ -403,7 +352,7 @@ let ReqResHandler = function (config, runCallback) {
                       sendCatch(e)
                     }
                 } else {
-                    //loop hassent finished yet call next callback
+                    //loop hasn't finished yet call next callback
                     next();
                 }
             };
@@ -502,6 +451,7 @@ let ReqResHandler = function (config, runCallback) {
         })
         return this;
     }
+    
     var _getPluginFunction = (cb)=>{
 
       if(typeof cb == "string" && _defaultPlugins[cb]){
@@ -514,6 +464,16 @@ let ReqResHandler = function (config, runCallback) {
         _useDefaultPlugins = false
         // _befores = _befores.concat(callbacks);
         // return this
+       
+        if(typeof callbacks == "string" ){
+            if(_pluginSets[callbacks]){
+                callbacks = _pluginSets[callbacks]
+            }
+            else{
+                throw("ReqRes Plugin set '"+callbacks+"' is not defined, run reqRes(setName:String, pluginNames:array) before your handler is called")
+            }
+        }
+
         callbacks.map(cbs=>{
             if(Array.isArray(cbs)){
               var allCb = []
@@ -562,28 +522,34 @@ let ReqResHandler = function (config, runCallback) {
 };
 
 
-module.exports = function(config_pluginName_reqRes, pluginReqRes){
+module.exports = function(param1, param2, param3){
   //if object as first param was passed it was a config obj
-  let validateConfig= () => {
+ 
     if(!this.config){
       this.config = {}
     }
     if(!this.config.plugins){
       this.config.plugins = {}
     }
-  }
-
-  if(typeof config_pluginName_reqRes == "object"){
-    this.config = config_pluginName_reqRes
-  }
-  //if second param was a function/array then its a plugin
-  else if(typeof pluginReqRes == 'function' || Array.isArray(pluginReqRes)){
-    validateConfig()
-    this.config.plugins[config_pluginName_reqRes] = pluginReqRes
-  }
-  //return the main reqRes class
-  else{
-    validateConfig()
-    return new  ReqResHandler(this.config, config_pluginName_reqRes)
-  }
+    if(!this.config.pluginSets){
+        this.config.pluginSets = {}
+    }
+  
+  //(object, null) is a config object 
+    if(typeof  param1 == "object"){
+        this.config = param1
+    }   
+    else if(typeof  param1 == "string"){
+        var pluginName = param2
+        var plugin = param3
+        if(param1.toLocaleLowerCase() == "plugin"){
+            this.config.plugins[pluginName] = plugin
+        }
+        else  if(param1.toLocaleLowerCase() == "plugin.subset"){
+            this.config.pluginSets[pluginName] = plugin
+        }
+    }
+    else{
+        return new  ReqResHandler(this.config, param1)
+    }
 }
