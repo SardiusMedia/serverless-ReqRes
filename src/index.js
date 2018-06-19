@@ -526,60 +526,30 @@ var _config = {
     plugins:{},
     pluginSets:{}
 };
-module.exports = (()=>{
 
-console.log("new Reqres require")
-var  reqResBuilder = function(param1, param2, param3){
-  //if object as first param was passed it was a config obj
-    // conf[ Math.random()] = Math.random()
-    // var config;
-    // var tt = typeof this
-    // var ttStr = JSON.stringify(this)
-    // if(tt == "undefined"){
-    //     config = _config;
-    // }
-    // else{
-    //     config = this.config
-    // }
-    
-    // if(!config){
-    //   config = {}
-    // }
-    // if(!config.plugins){
-    //   config.plugins = {}
-    // }
-    // if(!config.pluginSets){
-    //     config.pluginSets = {}
-    // }
-    // config = _config
-  //(object, null) is a config object 
+module.exports = function(param1, param2, param3){
+ 
     if(typeof  param1 == "object"){
-        _config = param1
+        _config.plugins = Object.assign(_config.plugins , param1.plugins )
+        _config.pluginSets = Object.assign(_config.pluginSets, param1.pluginSets)
     }   
     else if(typeof  param1 == "string"){
+        param1 = param1.toLocaleLowerCase()
         var pluginName = param2
         var plugin = param3
-        if(param1.toLocaleLowerCase() == "plugin"){
-            console.log("plugin")
-            _config.plugins[pluginName] = plugin
-        }
-        else  if(param1.toLocaleLowerCase() == "plugin.subset"){
-            _config.pluginSets[pluginName] = plugin
+        switch(param1){
+            case "plugin":
+                _config.plugins[pluginName] = plugin
+                break;
+            case "plugin.subset":
+                _config.pluginSets[pluginName] = plugin
+                break;
+            default:
+                return _config
         }
     }
-    else{
-        console.log("running reqres with", _config, typeof this)
-        return new  ReqResHandler(_config, param1)
+    else{        
+        return new ReqResHandler(_config, param1)
     }
-    
-    // if(tt == "undefined"){
-    //     _config = config;
-    // }
-    // else{
-    //     this.config = config
-    // }
-    // _config = config
-
 }
-return reqResBuilder
-})()
+
