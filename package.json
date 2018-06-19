@@ -1,16 +1,16 @@
 {
   "name": "serverless-req-res",
   "description": "A lightweight (5kb) \"ExpressJS like\" Request and Response handler (with plugin support) for AWS lambda functions.",
-  "version": "1.4.0",
+  "version": "1.4.6",
   "main": "lib/index.js",
   "author": "Sardius Media",
   "repository": "sardiusmedia/serverless-ReqRes",
   "license": "MIT",
   "scripts": {
-    "compile": "minify lib -d lib",
+    "compile": "minify src -d lib",
     "compileDev": "babel src --out-dir lib",
     "coveralls": "cat ./coverage/lcov.info | coveralls",
-    "prepublish": "npm run compile",
+    "dont-prepublish": "npm run compile",
     "testOld": "babel-node ./node_modules/.bin/isparta cover _mocha",
     "test":"mocha"
   },
