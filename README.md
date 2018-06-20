@@ -361,18 +361,19 @@ reqRes("plugin","plugin1", (req,res,rawServerlessEvent)=>{
 A Promse.all async plugin
 
 ```javascript
-reqRes("plugin", plugin2",
+reqRes("plugin", "plugin2",
 	[
       //note the timeout
       (req,res,rawServerlessEvent)=>{
           return new Promise((fulfill,reject)=>{
-          req.stack += "2"
-          setTimeout(fulfill,1000)
+            setTimeout(()=>{
+              req.stack += "2"
+              fulfill()
+            }),1000)
+          })
       },
       (req,res,rawServerlessEvent)=>{
-          return new Promise((fulfill,reject)=>{
           req.stack = "1";
-          fulfill()
       },
   ]
 )
