@@ -89,7 +89,7 @@ callback(null,{
   * [res.json](#resjson-statuscode-int--body-object---or--resjson-body-object-)
   * [res.jsonp](#resjsonp-statuscode-int--body-object--callback-string---or--resjsonp-body-object--callback-string-)
   * [res.error](#reserror-javacript-error---or--reserror-object-)
-  * [res.raw(Mixed)](#resraw-mixed-)
+  * [res.raw](#resraw-mixed-)
 - [Serverless Best Practices](#serverless-best-practices)
     + [Keep Your Lambda Functions as Small as Possable](#keep-your-lambda-functions-as-small-as-possable)
       - [Minify Your Lambda Functions](#minify-your-lambda-functions)
