@@ -89,6 +89,7 @@ callback(null,{
   * [res.json](#resjson-statuscode-int--body-object---or--resjson-body-object-)
   * [res.jsonp](#resjsonp-statuscode-int--body-object--callback-string---or--resjsonp-body-object--callback-string-)
   * [res.error](#reserror-javacript-error---or--reserror-object-)
+  * [res.raw(Mixed)](#resraw-mixed-)
 - [Serverless Best Practices](#serverless-best-practices)
     + [Keep Your Lambda Functions as Small as Possable](#keep-your-lambda-functions-as-small-as-possable)
       - [Minify Your Lambda Functions](#minify-your-lambda-functions)
@@ -159,6 +160,30 @@ Or JSONP
 res.jsonp({
   works:true;
 },'callback')
+```
+
+
+### Set the RAW Serverless callback
+Manually set the serverless callback object for use-cases outside of HTTP requests
+
+```javascript
+res.raw({
+	statusCode:200,
+	headers:{
+    	"Content-Type":"application/json"
+    }
+    body:"{\"hello\":\"test\"}"
+})
+```
+Calls
+```javascript
+callback(null, {
+	statusCode:200,
+	headers:{
+    	"Content-Type":"application/json"
+    }
+    body:"{\"hello\":\"test\"}"
+})
 ```
 
 
@@ -844,6 +869,19 @@ if Thrown Error is past serverless will be called back with json body
 If an object is past it will return your custom error object as jason body
 
 > **Type:** Function
+>
+> **Returns:** Object with function end() to stop any future before()s, plugins, or the main callback
+
+
+## res.raw(Mixed)
+
+**fulfill the lamba function with a String/text response**
+
+> **Type:** Function
+>
+> **Param 'callback object':**  Return this String/object as the serverless callback
+>
+> **Prams 'statusCode' (Optinal):** Set the http response code, Defualts to 200  
 >
 > **Returns:** Object with function end() to stop any future before()s, plugins, or the main callback
 

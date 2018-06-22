@@ -40,6 +40,10 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
         lcallback(param1,param2)
     }
 
+    var raw = (res) =>{
+        callback(null, res);
+        return {end:end}
+    }
     //Handles all default res handlers
     //send text to browser (run serverless callback)
     var send = (statusCode, body) => {
@@ -72,7 +76,7 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
 
         if(_debugmode){
               //callback to serveless
-            callback(null, {
+              raw({
                 statusCode: statusCode,
                 headers:_headers,
                 body: JSON.stringify( {
@@ -83,7 +87,7 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
             });
         }
         else{
-            callback(null, {
+            raw({
                 statusCode: statusCode,
                 headers:_headers,
                 body: body
@@ -216,6 +220,7 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
             headers: headers
         },
         res: {
+            raw:  raw,
             send: send,
             json: json,
             redirect: redirect,

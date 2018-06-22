@@ -73,6 +73,29 @@ describe('Basic Functionality', function(){
     });
   })
 
+  describe('Send RAW Request', function() {
+
+    var reqRes = ReqRes((req, res)=>{
+      res.raw({works:"works"})
+    })
+
+
+    it('Should Return String', async () => {
+      var request = await fakeRequest(reqRes.run)
+      assert.equal(request.works, "works");
+    });
+
+    it('Should Return 200', async () => {
+      var request = await fakeRequest(reqRes.run)
+       assert.equal(request.statusCode, undefined);
+    });
+
+    it('Should Return content type text/html', async () => {
+      var request = await fakeRequest(reqRes.run)
+       assert.equal(request.headers, undefined);
+    });
+  })
+
   describe('Send end() Request', function() {
    var ran = false
     var reqRes = ReqRes((req, res)=>{
