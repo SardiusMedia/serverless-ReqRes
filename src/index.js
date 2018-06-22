@@ -208,7 +208,7 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
         } catch (e) {}
     }
     //return the private ReqRes class (to be used in module.exports Class)
-    return {
+    var rtn = {
         update: update,
         wasSent:wasSent,
         wasEnded:wasEnded,
@@ -231,6 +231,12 @@ var _ReqRes = function _ReqRes(event, context, lcallback) {
             end:end
         }
     };
+
+    if(typeof event.httpMethod != "string" && typeof path != "string" && typeof headers != "object"){
+        rtn.req = event;
+    }
+    
+    return rtn
 };
 
 let ReqResHandler = function (config, runCallback) {
