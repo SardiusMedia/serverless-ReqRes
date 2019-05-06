@@ -284,11 +284,11 @@ let ReqResHandler = function (config, runCallback) {
                 "Access-Control-Allow-Methods": _preflight
             })
         }
-
-        if(typeof event["ReqRes_KEEP_HOT"] == "boolean" && event["ReqRes_KEEP_HOT"]){
+        
+        if ((typeof event["ReqRes_KEEP_HOT"] == "boolean" && event["ReqRes_KEEP_HOT"]) || event.source === 'serverless-plugin-warmup'){
             var message = {
               keepingHot:true,
-              message:"ReqRes plugin stopped before running any before()s, plugins, finally, or the main handler, as 'ReqRes_KEEP_HOT' was true for this sechduled request"
+              message:"ReqRes plugin stopped before running any before()s, plugins, finally, or the main handler, as 'ReqRes_KEEP_HOT' was true or was called by serverless-plugin-warmup for this request"
             }
             console.log(message)
             res.json( message ).end();
